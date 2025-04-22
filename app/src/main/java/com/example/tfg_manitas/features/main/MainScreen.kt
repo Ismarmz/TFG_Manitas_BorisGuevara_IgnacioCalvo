@@ -1,4 +1,4 @@
-package com.example.tfg_manitas.navigation.screens
+package com.example.tfg_manitas.features.main
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

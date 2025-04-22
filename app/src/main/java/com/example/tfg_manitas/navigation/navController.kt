@@ -6,8 +6,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.authapp.ui.screens.LoginScreen
 import com.example.authapp.ui.screens.RegisterScreen
-import com.example.tfg_manitas.navigation.screens.MainScreen
-import com.example.tfg_manitas.navigation.screens.register.login.ResetPasswordScreen
+import com.example.tfg_manitas.features.main.MainScreen
+import com.example.tfg_manitas.features.auth.ResetPasswordScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController, startDestination: String) {
