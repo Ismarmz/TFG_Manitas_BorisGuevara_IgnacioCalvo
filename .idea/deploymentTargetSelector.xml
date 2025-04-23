@@ -7,7 +7,7 @@
       </SelectionState>
       <SelectionState runConfigName="TFG_Manitas">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-04-02T19:48:44.870932Z">
+        <DropdownSelection timestamp="2025-04-22T14:25:31.425754100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=R9PW20WZTYV" />
