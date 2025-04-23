@@ -1,4 +1,4 @@
-package com.example.tfg_manitas.navigation.screens.register.login
+package com.example.tfg_manitas.features.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
