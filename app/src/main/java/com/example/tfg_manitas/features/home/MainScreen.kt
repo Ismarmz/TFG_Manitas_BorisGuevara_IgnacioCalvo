@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import com.example.tfg_manitas.features.jobs.AvailableJobsScreen
 import com.example.tfg_manitas.features.jobs.EditJobScreen
 import com.example.tfg_manitas.features.jobs.JobListScreen
 import com.example.tfg_manitas.features.jobs.PostJobScreen
+import com.example.tfg_manitas.features.jobs.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
 
 
@@ -39,8 +41,10 @@ fun MainScreen(rootNavController: NavHostController) {
         BottomNavItem("Inicio", "home", Icons.Default.Home),
         BottomNavItem("Publicar", "post", Icons.Default.Add),
         BottomNavItem("Mis trabajos", "jobs", Icons.Default.List),
-        BottomNavItem("Buscar", "explore", Icons.Default.Search)
+        BottomNavItem("Buscar", "explore", Icons.Default.Search),
+        BottomNavItem("Perfil", "profile", Icons.Default.Person) // <--- NUEVO
     )
+
 
     Scaffold(
         bottomBar = {
@@ -83,6 +87,9 @@ fun MainScreen(rootNavController: NavHostController) {
             }
             composable("explore") {
                 AvailableJobsScreen()
+            }
+            composable("profile") { // <--- NUEVO
+                ProfileScreen()
             }
         }
     }
