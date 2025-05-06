@@ -23,6 +23,8 @@ fun JobListScreen(
     val isLoading by jobViewModel.isLoading.collectAsState()
     val error by jobViewModel.error.collectAsState()
     val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    var jobToDelete by remember { mutableStateOf<Job?>(null) }
 
 
     Column(modifier = Modifier
@@ -71,10 +73,12 @@ fun JobListScreen(
                                         }
                                         DropdownMenuItem(onClick = {
                                             expanded = false
-                                            jobViewModel.deleteJob(job.id)
+                                            jobToDelete = job
+                                            showDialog = true
                                         }) {
                                             Text("Eliminar")
                                         }
+
                                     }
                                 }
                             }
@@ -89,6 +93,35 @@ fun JobListScreen(
                 }
 
             }
+            if (showDialog && jobToDelete != null) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showDialog = false
+                        jobToDelete = null
+                    },
+                    title = { Text("¿Eliminar trabajo?") },
+                    text = { Text("Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar este trabajo?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            jobViewModel.deleteJob(jobToDelete!!.id!!)
+                            Toast.makeText(context, "Trabajo eliminado", Toast.LENGTH_SHORT).show()
+                            showDialog = false
+                            jobToDelete = null
+                        }) {
+                            Text("Eliminar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showDialog = false
+                            jobToDelete = null
+                        }) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
+
         }
     }
 }

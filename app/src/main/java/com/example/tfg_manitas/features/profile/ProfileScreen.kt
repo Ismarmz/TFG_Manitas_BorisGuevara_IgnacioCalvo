@@ -1,4 +1,4 @@
-package com.example.tfg_manitas.features.jobs
+package com.example.tfg_manitas.features.profile
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*

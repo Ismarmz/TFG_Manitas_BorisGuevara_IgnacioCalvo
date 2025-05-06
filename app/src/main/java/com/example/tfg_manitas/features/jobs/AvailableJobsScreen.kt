@@ -6,12 +6,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
+import androidx.compose.material.ExposedDropdownMenuBox
+import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
     val context = LocalContext.current
@@ -19,24 +22,21 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
     val isLoading by jobViewModel.isLoading.collectAsState()
     val error by jobViewModel.error.collectAsState()
 
-    // 🎯 Filtros
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas") }
-    var locationFilter by remember { mutableStateOf("") }
-    val categoryOptions = listOf("Todas", "Limpieza", "Mudanza", "Reparación", "Otro")
+    val categoryOptions = listOf("Todas", "Limpieza", "Mudanza", "Reparación", "Jardinería", "Otro")
+    var expandedCategory by remember { mutableStateOf(false) }
 
-    // 🧠 Filtro local
+    // Filtro local actualizado
     val filteredJobs = allJobs.filter { job ->
         val matchesKeyword = searchQuery.isBlank() ||
                 job.title.contains(searchQuery, ignoreCase = true) ||
                 job.description.contains(searchQuery, ignoreCase = true)
 
-        val matchesCategory = selectedCategory == "Todas" || job.category.equals(selectedCategory, ignoreCase = true)
+        val matchesCategory = selectedCategory == "Todas" ||
+                job.category.equals(selectedCategory, ignoreCase = true)
 
-        val matchesLocation = locationFilter.isBlank() ||
-                job.location.contains(locationFilter, ignoreCase = true)
-
-        matchesKeyword && matchesCategory && matchesLocation
+        matchesKeyword && matchesCategory
     }
 
     Column(modifier = Modifier
@@ -46,7 +46,6 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
         Text("Buscar Trabajos", style = MaterialTheme.typography.h5)
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 🔍 Campo de búsqueda
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
@@ -56,54 +55,42 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 📂 Categoría + 📍 Ubicación
-        Row(modifier = Modifier.fillMaxWidth()) {
-            var expanded by remember { mutableStateOf(false) }
-
-            Box(modifier = Modifier.weight(1f)) {
-                OutlinedTextField(
-                    value = selectedCategory,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Categoría") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = true }
-                )
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    categoryOptions.forEach { option ->
-                        DropdownMenuItem(onClick = {
-                            selectedCategory = option
-                            expanded = false
-                        }) {
-                            Text(option)
-                        }
+        // Filtro de categoría con estilo PostJob/EditJob
+        ExposedDropdownMenuBox(
+            expanded = expandedCategory,
+            onExpandedChange = { expandedCategory = !expandedCategory }
+        ) {
+            OutlinedTextField(
+                value = selectedCategory,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Categoría") },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedCategory)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = expandedCategory,
+                onDismissRequest = { expandedCategory = false }
+            ) {
+                categoryOptions.forEach { category ->
+                    DropdownMenuItem(onClick = {
+                        selectedCategory = category
+                        expandedCategory = false
+                    }) {
+                        Text(text = category)
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            OutlinedTextField(
-                value = locationFilter,
-                onValueChange = { locationFilter = it },
-                label = { Text("Ubicación") },
-                modifier = Modifier.weight(1f)
-            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 🧹 Limpiar filtros
         Button(
             onClick = {
                 searchQuery = ""
                 selectedCategory = "Todas"
-                locationFilter = ""
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -112,7 +99,6 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 📊 Resultado
         if (isLoading) {
             CircularProgressIndicator()
         } else if (!error.isNullOrEmpty()) {

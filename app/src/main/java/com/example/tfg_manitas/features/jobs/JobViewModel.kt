@@ -63,47 +63,44 @@ class JobViewModel : ViewModel() {
         }
 
     }
-    fun loadUserJobs() {
+    fun listenToUserJobs() {
         val uid = auth.currentUser?.uid ?: return
-        _isLoading.value = true
         _error.value = null
 
         db.collection("jobs")
             .whereEqualTo("userId", uid)
-            .get()
-            .addOnSuccessListener { result ->
-                val jobsList = result.map { doc ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    _error.value = error?.message ?: "Error al escuchar trabajos"
+                    return@addSnapshotListener
+                }
+
+                val jobsList = snapshot.map { doc ->
                     doc.toObject(Job::class.java).copy(id = doc.id)
                 }
                 _userJobs.value = jobsList
-                _isLoading.value = false
-            }
-            .addOnFailureListener { e ->
-                _error.value = e.message
-                _isLoading.value = false
             }
     }
 
-    fun loadAvailableJobs() {
-        val uid = auth.currentUser?.uid ?: return
-        _isLoading.value = true
+
+    fun listenToAllJobs() {
         _error.value = null
 
         db.collection("jobs")
-            .whereNotEqualTo("userId", uid)
-            .get()
-            .addOnSuccessListener { result ->
-                val jobsList = result.map { doc ->
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    _error.value = error?.message ?: "Error al escuchar trabajos"
+                    return@addSnapshotListener
+                }
+
+                val jobsList = snapshot.map { doc ->
                     doc.toObject(Job::class.java).copy(id = doc.id)
                 }
                 _availableJobs.value = jobsList
-                _isLoading.value = false
-            }
-            .addOnFailureListener { e ->
-                _error.value = e.message
-                _isLoading.value = false
             }
     }
+
+
 
     fun deleteJob(jobId: String) {
         _isLoading.value = true
@@ -111,7 +108,7 @@ class JobViewModel : ViewModel() {
             .delete()
             .addOnSuccessListener {
                 _isLoading.value = false
-                loadUserJobs() // recargar lista
+                listenToUserJobs() // recargar lista
             }
             .addOnFailureListener {
                 _error.value = "Error al eliminar trabajo"
@@ -123,6 +120,7 @@ class JobViewModel : ViewModel() {
         val job = userJobs.value.find { it.id == id }
         return MutableStateFlow(job)
     }
+
     fun updateJob(
         jobId: String,
         updatedJob: Job,
@@ -135,10 +133,10 @@ class JobViewModel : ViewModel() {
             .addOnFailureListener { onFailure(it.message ?: "Error desconocido") }
     }
 
-
     init {
-        loadUserJobs()
-        loadAvailableJobs()
+        listenToUserJobs()
+        listenToAllJobs()
     }
+
 
 }
