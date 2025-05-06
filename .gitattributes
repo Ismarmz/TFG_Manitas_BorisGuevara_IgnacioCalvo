@@ -1,0 +1,24 @@
+# Normaliza finales de línea para evitar conflictos entre Windows/Linux/macOS
+* text=auto
+
+# Archivos comunes de código: fuerza EOL tipo LF (más universal)
+*.kt text eol=lf
+*.java text eol=lf
+*.xml text eol=lf
+*.gradle text eol=lf
+*.properties text eol=lf
+*.md text eol=lf
+
+# Archivos específicos de Android Studio / IntelliJ
+*.iml text eol=lf
+.idea/** text eol=lf
+
+# Evitar cambios de fin de línea en binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.jar binary
+*.keystore binary
