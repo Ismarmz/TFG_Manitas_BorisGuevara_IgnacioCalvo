@@ -1,5 +1,6 @@
 package com.example.tfg_manitas.data.repository
 
+
 import com.example.tfg_manitas.features.profile.User
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -31,4 +32,18 @@ class UserRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun updateUser(user: User): Result<Unit> {
+        return try {
+            FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(user.uid)
+                .set(user)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
