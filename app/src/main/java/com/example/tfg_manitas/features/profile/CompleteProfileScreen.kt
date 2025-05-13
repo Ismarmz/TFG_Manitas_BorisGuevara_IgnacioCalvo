@@ -75,8 +75,8 @@ fun CompleteProfileScreen(navController: NavController) {
                         isLoading = false
                         if (result.isSuccess) {
                             Toast.makeText(context, "Perfil guardado", Toast.LENGTH_SHORT).show()
-                            navController.navigate("home") {
-                                popUpTo("CompleteProfile") { inclusive = true }
+                            navController.navigate("Main") {
+                                popUpTo("completeProfile") { inclusive = true }
                             }
                         } else {
                             Toast.makeText(context, "Error: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
