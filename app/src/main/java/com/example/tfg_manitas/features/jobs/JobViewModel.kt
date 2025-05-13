@@ -3,6 +3,7 @@ package com.example.tfg_manitas.features.jobs
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.tfg_manitas.features.profile.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,9 +28,14 @@ class JobViewModel : ViewModel() {
     private val _availableJobs = MutableStateFlow<List<Job>>(emptyList())
     val availableJobs: StateFlow<List<Job>> = _availableJobs
 
+    private val _userMap = MutableStateFlow<Map<String, User>>(emptyMap())
+    val userMap: StateFlow<Map<String, User>> = _userMap
+
+
     init {
         listenToUserJobs()
         listenToAllJobs()
+        loadAllUsers()
     }
 
     fun postJob(
@@ -69,6 +75,16 @@ class JobViewModel : ViewModel() {
                 }
         }
     }
+
+    fun loadAllUsers() {
+        FirebaseFirestore.getInstance().collection("users")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val users = snapshot.mapNotNull { it.toObject(User::class.java) }
+                _userMap.value = users.associateBy { it.uid }
+            }
+    }
+
 
     fun listenToUserJobs() {
         val uid = auth.currentUser?.uid ?: return

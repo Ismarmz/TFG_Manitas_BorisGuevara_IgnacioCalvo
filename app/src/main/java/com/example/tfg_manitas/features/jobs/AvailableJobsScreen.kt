@@ -24,6 +24,8 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
     val allJobs by jobViewModel.availableJobs.collectAsState()
     val isLoading by jobViewModel.isLoading.collectAsState()
     val error by jobViewModel.error.collectAsState()
+    val userMap by jobViewModel.userMap.collectAsState()
+
 
     val userId = FirebaseAuth.getInstance().currentUser?.uid
     val coroutineScope = rememberCoroutineScope()
@@ -124,6 +126,9 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Text(text = job.title, style = MaterialTheme.typography.h6)
+
+                                val creatorName = userMap[job.userId]?.name ?: "Usuario desconocido"
+                                Text("Publicado por: $creatorName", style = MaterialTheme.typography.body2)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("📍 ${job.location}")
                                 Text("🕒 ${job.dateTime}")
