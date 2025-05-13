@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
+
 class JobRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance(),
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
@@ -76,4 +77,51 @@ class JobRepository(
             Result.failure(e)
         }
     }
+
+    class JobRepository {
+        private val db = FirebaseFirestore.getInstance()
+        private val jobsCollection = db.collection("jobs")
+
+        // 🔹 POSTULARSE A UN TRABAJO
+        suspend fun applyToJob(jobId: String, userId: String): Result<Unit> {
+            return try {
+                val jobRef = jobsCollection.document(jobId)
+                db.runTransaction { transaction ->
+                    val snapshot = transaction.get(jobRef)
+                    val applicants = snapshot.get("applicants") as? List<String> ?: emptyList()
+                    if (!applicants.contains(userId)) {
+                        val updatedApplicants = applicants + userId
+                        transaction.update(jobRef, "applicants", updatedApplicants)
+                    }
+                }.await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+        // 🔹 SELECCIONAR UN POSTULANTE
+        suspend fun selectWorker(jobId: String, workerId: String): Result<Unit> {
+            return try {
+                jobsCollection.document(jobId)
+                    .update("selectedWorkerId", workerId)
+                    .await()
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+
+        // (Opcional) Obtener lista de IDs de postulantes
+        suspend fun getApplicants(jobId: String): Result<List<String>> {
+            return try {
+                val snapshot = jobsCollection.document(jobId).get().await()
+                val applicants = snapshot.get("applicants") as? List<String> ?: emptyList()
+                Result.success(applicants)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
 }

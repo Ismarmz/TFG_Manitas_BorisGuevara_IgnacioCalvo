@@ -1,7 +1,6 @@
 package com.example.tfg_manitas.features.jobs
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,9 +9,13 @@ import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.ExposedDropdownMenuDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
+import android.util.Log
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -22,12 +25,14 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
     val isLoading by jobViewModel.isLoading.collectAsState()
     val error by jobViewModel.error.collectAsState()
 
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val coroutineScope = rememberCoroutineScope()
+
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Todas") }
     val categoryOptions = listOf("Todas", "Limpieza", "Mudanza", "Reparación", "Jardinería", "Otro")
     var expandedCategory by remember { mutableStateOf(false) }
 
-    // Filtro local actualizado
     val filteredJobs = allJobs.filter { job ->
         val matchesKeyword = searchQuery.isBlank() ||
                 job.title.contains(searchQuery, ignoreCase = true) ||
@@ -55,7 +60,6 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Filtro de categoría con estilo PostJob/EditJob
         ExposedDropdownMenuBox(
             expanded = expandedCategory,
             onExpandedChange = { expandedCategory = !expandedCategory }
@@ -126,10 +130,26 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(text = job.description, maxLines = 2)
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Button(onClick = {
-                                    Toast.makeText(context, "Te has postulado (simulado)", Toast.LENGTH_SHORT).show()
-                                }) {
-                                    Text("Postularme")
+
+                                if (job.userId != userId && !job.applicants.contains(userId)) {
+                                    Button(onClick = {
+                                        coroutineScope.launch {
+                                            val result = jobViewModel.applyToJob(job.id, userId!!)
+                                            if (result.isSuccess) {
+                                                Toast.makeText(context, "Te has postulado con éxito", Toast.LENGTH_SHORT).show()
+                                                jobViewModel.refreshJobs()
+                                            } else {
+                                                val errorMessage = result.exceptionOrNull()?.message ?: "Error desconocido"
+                                                Log.e("PostulacionError", "Fallo al postularse: $errorMessage")
+                                                Toast.makeText(context, "Error: $errorMessage", Toast.LENGTH_LONG).show()
+                                            }
+
+                                        }
+                                    }) {
+                                        Text("Postularme")
+                                    }
+                                } else if (job.applicants.contains(userId)) {
+                                    Text("Ya te has postulado", color = Color.Gray)
                                 }
                             }
                         }

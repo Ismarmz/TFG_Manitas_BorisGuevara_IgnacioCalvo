@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -24,7 +25,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.tfg_manitas.features.jobs.AvailableJobsScreen
-import com.example.tfg_manitas.features.jobs.JobListScreen
+import com.example.tfg_manitas.features.jobs.JobsListScreen
+import com.example.tfg_manitas.features.jobs.MyApplicationsScreen
 import com.example.tfg_manitas.features.jobs.PostJobScreen
 import com.example.tfg_manitas.features.profile.ProfileScreen
 import com.google.firebase.auth.FirebaseAuth
@@ -39,7 +41,9 @@ fun MainScreen(rootNavController: NavHostController) {
         BottomNavItem("Publicar", "post", Icons.Default.Add),
         BottomNavItem("Mis trabajos", "jobs", Icons.Default.List),
         BottomNavItem("Buscar", "explore", Icons.Default.Search),
-        BottomNavItem("Perfil", "profile", Icons.Default.Person) // <--- NUEVO
+        BottomNavItem("Perfil", "profile", Icons.Default.Person),
+        BottomNavItem("Mis solicitudes", "applications", Icons.Default.Check)
+
     )
 
 
@@ -74,27 +78,37 @@ fun MainScreen(rootNavController: NavHostController) {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable("home") {
-                HomeContent()
+                HomeContent(
+                    onLogout = {
+                        rootNavController.navigate("login") {
+                            popUpTo("Main") { inclusive = true }
+                        }
+                    }
+                )
             }
             composable("post") {
                 PostJobScreen(navController = rootNavController)
             }
             composable("jobs") {
-                JobListScreen(navController = rootNavController)
+                JobsListScreen()
             }
             composable("explore") {
                 AvailableJobsScreen()
             }
-            composable("profile") { // <--- NUEVO
+            composable("profile") {
                 ProfileScreen()
             }
+            composable("applications") {
+                MyApplicationsScreen()
+            }
+
         }
     }
 }
 
 data class BottomNavItem(val label: String, val route: String, val icon: ImageVector)
 @Composable
-fun HomeContent(navController: NavHostController = rememberNavController()) {
+fun HomeContent(onLogout: () -> Unit) {
     val auth = FirebaseAuth.getInstance()
     val context = LocalContext.current
     val email = auth.currentUser?.email ?: "Usuario"
@@ -105,15 +119,12 @@ fun HomeContent(navController: NavHostController = rememberNavController()) {
         Text("Bienvenido a Manitas", style = MaterialTheme.typography.body1)
         Spacer(modifier = Modifier.height(16.dp))
         Text("Desde el menú puedes publicar trabajos o ver los que ya creaste.")
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(onClick = {
             auth.signOut()
             Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
-            navController.navigate("login") {
-                popUpTo("Main") { inclusive = true }
-            }
+            onLogout()
         }) {
             Text("Cerrar Sesión")
         }

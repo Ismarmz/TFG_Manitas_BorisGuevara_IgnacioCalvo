@@ -5,9 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class JobViewModel : ViewModel() {
 
@@ -25,6 +26,11 @@ class JobViewModel : ViewModel() {
 
     private val _availableJobs = MutableStateFlow<List<Job>>(emptyList())
     val availableJobs: StateFlow<List<Job>> = _availableJobs
+
+    init {
+        listenToUserJobs()
+        listenToAllJobs()
+    }
 
     fun postJob(
         title: String,
@@ -49,6 +55,7 @@ class JobViewModel : ViewModel() {
             dateTime = dateTime,
             userId = currentUser.uid
         )
+
         viewModelScope.launch {
             db.collection("jobs")
                 .add(job)
@@ -61,8 +68,8 @@ class JobViewModel : ViewModel() {
                     onFailure(e.message ?: "Error desconocido")
                 }
         }
-
     }
+
     fun listenToUserJobs() {
         val uid = auth.currentUser?.uid ?: return
         _error.value = null
@@ -82,7 +89,6 @@ class JobViewModel : ViewModel() {
             }
     }
 
-
     fun listenToAllJobs() {
         _error.value = null
 
@@ -100,15 +106,13 @@ class JobViewModel : ViewModel() {
             }
     }
 
-
-
     fun deleteJob(jobId: String) {
         _isLoading.value = true
         db.collection("jobs").document(jobId)
             .delete()
             .addOnSuccessListener {
                 _isLoading.value = false
-                listenToUserJobs() // recargar lista
+                listenToUserJobs()
             }
             .addOnFailureListener {
                 _error.value = "Error al eliminar trabajo"
@@ -133,10 +137,43 @@ class JobViewModel : ViewModel() {
             .addOnFailureListener { onFailure(it.message ?: "Error desconocido") }
     }
 
-    init {
-        listenToUserJobs()
-        listenToAllJobs()
+    // 🔹 Nueva función: postularse a un trabajo
+    suspend fun applyToJob(jobId: String, userId: String): Result<Unit> {
+        return try {
+            val jobRef = db.collection("jobs").document(jobId)
+
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(jobRef)
+                val currentApplicants = snapshot.get("applicants") as? List<String> ?: emptyList()
+
+                if (!currentApplicants.contains(userId)) {
+                    val updatedApplicants = currentApplicants + userId
+                    transaction.update(jobRef, "applicants", updatedApplicants)
+                }
+            }.await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 
+    suspend fun selectWorker(jobId: String, workerId: String): Result<Unit> {
+        return try {
+            db.collection("jobs")
+                .document(jobId)
+                .update("selectedWorkerId", workerId)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    fun refreshJobs() {
+        listenToAllJobs()
+        listenToUserJobs()
+    }
 }

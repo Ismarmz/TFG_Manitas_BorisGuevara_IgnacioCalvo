@@ -1,4 +1,4 @@
-package com.example.authapp.ui.screens
+package com.example.tfg_manitas.features.auth
 
 import android.util.Patterns
 import android.widget.Toast
@@ -25,7 +25,9 @@ fun RegisterScreen(navController: NavHostController) {
     var isLoading by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Crear Cuenta", style = MaterialTheme.typography.h5)
@@ -68,10 +70,48 @@ fun RegisterScreen(navController: NavHostController) {
         Button(
             onClick = {
                 isLoading = true
-                registerUser(auth, email, password, confirmPassword, context) { error ->
+                errorMessage = null
+
+                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                    errorMessage = "Correo electrónico no válido"
                     isLoading = false
-                    errorMessage = error
+                    return@Button
                 }
+
+                if (password.length < 6) {
+                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
+                    isLoading = false
+                    return@Button
+                }
+
+                if (password != confirmPassword) {
+                    errorMessage = "Las contraseñas no coinciden"
+                    isLoading = false
+                    return@Button
+                }
+
+                auth.createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        isLoading = false
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            user?.sendEmailVerification()
+                            Toast.makeText(context, "Registro exitoso. Verifica tu correo.", Toast.LENGTH_LONG).show()
+
+                            // 🔄 Redirigir al completar perfil
+                            navController.navigate("completeProfile") {
+                                popUpTo("register") { inclusive = true }
+                            }
+                        } else {
+                            val errorCode = (task.exception as? com.google.firebase.auth.FirebaseAuthException)?.errorCode
+                            val errorMessageText = when (errorCode) {
+                                "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado"
+                                "ERROR_WEAK_PASSWORD" -> "La contraseña es demasiado débil"
+                                else -> "Error al registrar. Inténtalo de nuevo."
+                            }
+                            errorMessage = errorMessageText
+                        }
+                    }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
@@ -87,51 +127,4 @@ fun RegisterScreen(navController: NavHostController) {
             Text("¿Ya tienes cuenta? Inicia sesión")
         }
     }
-}
-
-
-fun registerUser(
-    auth: FirebaseAuth,
-    email: String,
-    password: String,
-    confirmPassword: String,
-    context: android.content.Context,
-    onError: (String?) -> Unit
-) {
-    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-        onError("Correo electrónico no válido")
-        return
-    }
-
-    if (password.length < 6) {
-        onError("La contraseña debe tener al menos 6 caracteres")
-        return
-    }
-
-    if (password != confirmPassword) {
-        onError("Las contraseñas no coinciden")
-        return
-    }
-
-    auth.createUserWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val user = auth.currentUser
-                user?.sendEmailVerification()?.addOnCompleteListener { emailTask ->
-                    if (emailTask.isSuccessful) {
-                        Toast.makeText(context, "Registro exitoso. Verifica tu correo.", Toast.LENGTH_LONG).show()
-                    } else {
-                        onError("Error al enviar correo de verificación")
-                    }
-                }
-            } else {
-                val errorCode = (task.exception as? com.google.firebase.auth.FirebaseAuthException)?.errorCode
-                val errorMessage = when (errorCode) {
-                    "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado"
-                    "ERROR_WEAK_PASSWORD" -> "La contraseña es demasiado débil"
-                    else -> "Error al registrar. Inténtalo de nuevo."
-                }
-                onError(errorMessage)
-            }
-        }
 }

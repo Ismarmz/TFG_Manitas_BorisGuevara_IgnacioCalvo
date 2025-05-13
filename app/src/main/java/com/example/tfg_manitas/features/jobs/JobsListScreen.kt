@@ -5,46 +5,39 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHostController
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @Composable
-fun JobListScreen(
-    navController: NavHostController,
-    jobViewModel: JobViewModel = viewModel()
-) {
-    val jobs by jobViewModel.userJobs.collectAsState()
+fun JobsListScreen(jobViewModel: JobViewModel = viewModel()) {
+    val userJobs by jobViewModel.userJobs.collectAsState()
     val isLoading by jobViewModel.isLoading.collectAsState()
     val error by jobViewModel.error.collectAsState()
     val context = LocalContext.current
-    var showDialog by remember { mutableStateOf(false) }
-    var jobToDelete by remember { mutableStateOf<Job?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val userId = FirebaseAuth.getInstance().currentUser?.uid
 
-
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text("Mis Trabajos Publicados", style = MaterialTheme.typography.h5)
+
         Spacer(modifier = Modifier.height(16.dp))
 
         if (isLoading) {
             CircularProgressIndicator()
         } else if (!error.isNullOrEmpty()) {
-            Text("Error: $error", color = MaterialTheme.colors.error)
-        } else if (jobs.isEmpty()) {
+            Text("Error: $error", color = Color.Red)
+        } else if (userJobs.isEmpty()) {
             Text("No has publicado ningún trabajo aún.")
         } else {
             LazyColumn {
-                items(jobs) { job ->
-                    var expanded by remember { mutableStateOf(false) }
-
+                items(userJobs) { job ->
                     Card(
                         elevation = 4.dp,
                         modifier = Modifier
@@ -52,76 +45,67 @@ fun JobListScreen(
                             .padding(vertical = 8.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Text(text = job.title, style = MaterialTheme.typography.h6)
-                                Box {
-                                    IconButton(onClick = { expanded = true }) {
-                                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
-                                    }
-                                    DropdownMenu(
-                                        expanded = expanded,
-                                        onDismissRequest = { expanded = false }
-                                    ) {
-                                        DropdownMenuItem(onClick = {
-                                            expanded = false
-                                            navController.navigate("editJob/${job.id}")
-                                        }) {
-                                            Text("Editar")
-                                        }
-                                        DropdownMenuItem(onClick = {
-                                            expanded = false
-                                            jobToDelete = job
-                                            showDialog = true
-                                        }) {
-                                            Text("Eliminar")
-                                        }
-
-                                    }
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(text = job.title, style = MaterialTheme.typography.h6)
                             Text("📍 ${job.location}")
                             Text("🕒 ${job.dateTime}")
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = job.description, maxLines = 2)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(text = job.description)
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            if (job.applicants.isNotEmpty()) {
+                                Text("Postulantes:", style = MaterialTheme.typography.subtitle2)
+
+                                job.applicants.forEach { applicantId ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 4.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(applicantId, style = MaterialTheme.typography.body2)
+
+                                        Button(
+                                            onClick = {
+                                                coroutineScope.launch {
+                                                    val result = jobViewModel.selectWorker(job.id, applicantId)
+                                                    if (result.isSuccess) {
+                                                        Toast.makeText(context, "Trabajador asignado", Toast.LENGTH_SHORT).show()
+                                                        jobViewModel.refreshJobs()
+                                                    } else {
+                                                        Toast.makeText(context, "Error al asignar", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                }
+                                            },
+                                            enabled = job.selectedWorkerId == null
+                                        ) {
+                                            Text("Seleccionar")
+                                        }
+                                    }
+                                }
+
+                                if (job.selectedWorkerId != null) {
+                                    Text("✅ Asignado a: ${job.selectedWorkerId}", color = Color.Green)
+                                }
+                            } else {
+                                Text("Sin postulantes aún", color = Color.Gray)
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Button(
+                                onClick = {
+                                    jobViewModel.deleteJob(job.id)
+                                },
+                                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Red)
+                            ) {
+                                Text("Eliminar trabajo", color = Color.White)
+                            }
                         }
                     }
                 }
-
             }
-            if (showDialog && jobToDelete != null) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showDialog = false
-                        jobToDelete = null
-                    },
-                    title = { Text("¿Eliminar trabajo?") },
-                    text = { Text("Esta acción no se puede deshacer. ¿Estás seguro de que quieres eliminar este trabajo?") },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            jobViewModel.deleteJob(jobToDelete!!.id!!)
-                            Toast.makeText(context, "Trabajo eliminado", Toast.LENGTH_SHORT).show()
-                            showDialog = false
-                            jobToDelete = null
-                        }) {
-                            Text("Eliminar")
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = {
-                            showDialog = false
-                            jobToDelete = null
-                        }) {
-                            Text("Cancelar")
-                        }
-                    }
-                )
-            }
-
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.authapp.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -9,7 +10,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.tfg_manitas.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -56,15 +61,42 @@ fun LoginScreen(navController: NavHostController) {
         Button(
             onClick = {
                 isLoading = true
-                loginUser(auth, email, password, context, {
+                errorMessage = null
+
+                if (email.isBlank() || password.isBlank()) {
+                    errorMessage = "Por favor ingresa tu correo y contraseña"
                     isLoading = false
-                    navController.navigate("Main") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                }) { error ->
-                    isLoading = false
-                    errorMessage = error
+                    return@Button
                 }
+
+                auth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        isLoading = false
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            if (user != null && user.isEmailVerified) {
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    val result = UserRepository().getUserById(user.uid)
+                                    if (result.isSuccess) {
+                                        // Perfil ya creado → ir a Main
+                                        navController.navigate("Main") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    } else {
+                                        // Perfil NO creado → ir a completar perfil
+                                        navController.navigate("completeProfile") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                    }
+                                }
+                            } else {
+                                errorMessage = "Verifica tu correo antes de iniciar sesión"
+                            }
+                        } else {
+                            val msg = task.exception?.message ?: "Error al iniciar sesión"
+                            errorMessage = msg
+                        }
+                    }
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = !isLoading
@@ -84,33 +116,4 @@ fun LoginScreen(navController: NavHostController) {
             Text("¿Olvidaste tu contraseña?")
         }
     }
-}
-
-fun loginUser(
-    auth: FirebaseAuth,
-    email: String,
-    password: String,
-    context: android.content.Context,
-    navToMain: () -> Unit,
-    onError: (String?) -> Unit
-) {
-    if (email.isBlank() || password.isBlank()) {
-        onError("Por favor ingresa tu correo y contraseña")
-        return
-    }
-
-    auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val user = auth.currentUser
-                if (user != null && user.isEmailVerified) {
-                    navToMain()
-                } else {
-                    onError("Verifica tu correo antes de iniciar sesión")
-                }
-            } else {
-                val errorMessage = task.exception?.message ?: "Error al iniciar sesión"
-                onError(errorMessage)
-            }
-        }
 }

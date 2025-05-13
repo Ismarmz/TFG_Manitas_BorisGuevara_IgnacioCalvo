@@ -12,19 +12,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.authapp.ui.screens.LoginScreen
-import com.example.authapp.ui.screens.RegisterScreen
+import com.example.tfg_manitas.features.auth.RegisterScreen
 import com.example.tfg_manitas.features.auth.ResetPasswordScreen
 import com.example.tfg_manitas.features.home.MainScreen
 import com.example.tfg_manitas.features.jobs.EditJobScreen
 import com.example.tfg_manitas.features.jobs.JobViewModel
 import com.example.tfg_manitas.features.jobs.PostJobScreen
-
+import com.example.tfg_manitas.features.profile.CompleteProfileScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController, startDestination: String) {
     NavHost(navController = navController, startDestination = startDestination) {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
+        composable("completeProfile") { CompleteProfileScreen(navController) }
         composable("resetPassword") { ResetPasswordScreen(navController) }
         composable("Main") { MainScreen(navController) }
         composable("postJob") { PostJobScreen(navController) }
