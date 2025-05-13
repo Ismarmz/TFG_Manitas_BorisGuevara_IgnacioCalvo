@@ -26,7 +26,6 @@ import kotlinx.coroutines.launch
 fun ProfileScreen() {
     val auth = FirebaseAuth.getInstance()
     val userId = auth.currentUser?.uid ?: return
-    val email = auth.currentUser?.email ?: "Correo desconocido"
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -97,19 +96,12 @@ fun ProfileScreen() {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = email,
-                    style = MaterialTheme.typography.subtitle1,
+                    text = name.ifBlank { "Sin nombre" },
+                    style = MaterialTheme.typography.h6,
                     textAlign = TextAlign.Center
                 )
 
-                user?.createdAt?.let {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Cuenta creada: ${it.substringBefore('T')}",
-                        style = MaterialTheme.typography.caption,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -167,7 +159,7 @@ fun ProfileScreen() {
                                     description = description
                                 ) ?: User(
                                     uid = userId,
-                                    email = email,
+                                    email = auth.currentUser?.email ?: "",
                                     name = name,
                                     description = description,
                                     createdAt = ""
@@ -198,14 +190,6 @@ fun ProfileScreen() {
                         }
                     }
                 } else {
-                    Text(
-                        text = name,
-                        style = MaterialTheme.typography.h6,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
                         text = description.ifBlank { "Sin descripción" },
                         style = MaterialTheme.typography.body2,
