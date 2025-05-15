@@ -93,7 +93,7 @@ fun MainScreen(rootNavController: NavHostController) {
                 JobsListScreen()
             }
             composable("explore") {
-                AvailableJobsScreen()
+                AvailableJobsScreen(navController = rootNavController)
             }
             composable("profile") {
                 ProfileScreen()

@@ -19,6 +19,7 @@ import com.example.tfg_manitas.features.jobs.EditJobScreen
 import com.example.tfg_manitas.features.jobs.JobViewModel
 import com.example.tfg_manitas.features.jobs.PostJobScreen
 import com.example.tfg_manitas.features.profile.CompleteProfileScreen
+import com.example.tfg_manitas.features.profile.PublicProfileScreen
 
 @Composable
 fun AppNavigation(navController: NavHostController, startDestination: String) {
@@ -30,6 +31,16 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
         composable("Main") { MainScreen(navController) }
         composable("postJob") { PostJobScreen(navController) }
 
+        // 🔧 NUEVO: Perfil público
+        composable(
+            route = "publicProfile/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            PublicProfileScreen(userId = userId)
+        }
+
+        // Editar trabajo
         composable(
             route = "editJob/{jobId}",
             arguments = listOf(navArgument("jobId") { type = NavType.StringType })
@@ -44,8 +55,7 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
                     job = job,
                     navController = navController
                 )
-            }
-            else {
+            } else {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center

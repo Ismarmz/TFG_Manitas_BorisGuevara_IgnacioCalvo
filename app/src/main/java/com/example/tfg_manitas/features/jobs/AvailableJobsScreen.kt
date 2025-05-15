@@ -16,10 +16,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
+fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewModel = viewModel())
+ {
     val context = LocalContext.current
     val allJobs by jobViewModel.availableJobs.collectAsState()
     val isLoading by jobViewModel.isLoading.collectAsState()
@@ -128,7 +130,11 @@ fun AvailableJobsScreen(jobViewModel: JobViewModel = viewModel()) {
                                 Text(text = job.title, style = MaterialTheme.typography.h6)
 
                                 val creatorName = userMap[job.userId]?.name ?: "Usuario desconocido"
-                                Text("Publicado por: $creatorName", style = MaterialTheme.typography.body2)
+                                TextButton(onClick = {
+                                    navController.navigate("publicProfile/${job.userId}")
+                                }) {
+                                    Text("Publicado por: $creatorName", style = MaterialTheme.typography.body2)
+                                }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("📍 ${job.location}")
                                 Text("🕒 ${job.dateTime}")
