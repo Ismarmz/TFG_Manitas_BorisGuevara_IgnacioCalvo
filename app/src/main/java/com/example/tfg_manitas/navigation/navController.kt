@@ -37,7 +37,7 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
         ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
-            PublicProfileScreen(userId = userId)
+            PublicProfileScreen(userId = userId, navController = navController)
         }
 
         // Editar trabajo
