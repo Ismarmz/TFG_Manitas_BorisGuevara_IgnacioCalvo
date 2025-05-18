@@ -12,6 +12,14 @@ import androidx.navigation.NavController
 import com.example.tfg_manitas.data.repository.ReviewRepository
 import com.example.tfg_manitas.data.repository.UserRepository
 import com.example.tfg_manitas.features.reviews.Review
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import com.example.tfg_manitas.R
+
 
 @Composable
 fun PublicProfileScreen(
@@ -24,61 +32,84 @@ fun PublicProfileScreen(
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     var isReviewsLoading by remember { mutableStateOf(true) }
 
-    // Carga usuario y reseñas
+    // Cargar usuario y reseñas
     LaunchedEffect(userId) {
-        println("👁️ Viendo perfil público de UID: $userId")
-
         val userResult = UserRepository().getUserById(userId)
         userResult.onSuccess {
             user = it
-            println("👤 Usuario cargado: ${it.name}")
-        }.onFailure {
-            println("❌ Error cargando usuario: ${it.message}")
         }
         isUserLoading = false
 
         val reviewResult = reviewRepo.getReviewsForUser(userId)
         reviewResult.onSuccess {
             reviews = it
-            println("✅ Se cargaron ${it.size} reseñas para $userId")
-        }.onFailure {
-            println("❌ Error cargando reseñas: ${it.message}")
         }
         isReviewsLoading = false
     }
 
+    if (isUserLoading) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else if (user == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Usuario no encontrado")
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 80.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Imagen de perfil por defecto
+            Image(
+                painter = painterResource(id = R.drawable.profile),
+                contentDescription = "Foto de perfil",
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
 
+            Spacer(modifier = Modifier.height(16.dp))
 
-    when {
-        isUserLoading -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Nombre
+            Text(
+                text = user!!.name.ifBlank { "Sin nombre" },
+                style = MaterialTheme.typography.h6,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Descripción
+            Text(
+                text = user!!.description.ifBlank { "Sin descripción" },
+                style = MaterialTheme.typography.body2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sección de reseñas
+            if (isReviewsLoading) {
                 CircularProgressIndicator()
-            }
-        }
-        user == null -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Usuario no encontrado")
-            }
-        }
-        else -> {
-            Column(Modifier.fillMaxSize().padding(16.dp)) {
-                // Datos del usuario
-                Text(user!!.name, style = MaterialTheme.typography.h5)
-                Text(user!!.description.ifBlank { "Sin descripción" })
-                Spacer(Modifier.height(16.dp))
+            } else if (reviews.isEmpty()) {
+                Text("Aún no tiene reseñas", style = MaterialTheme.typography.body2)
+            } else {
+                val avg = reviews.map { it.rating }.average()
+                Text("⭐ Promedio: %.1f".format(avg), style = MaterialTheme.typography.subtitle1)
+                Spacer(Modifier.height(12.dp))
 
-                // Reseñas
-                if (isReviewsLoading) {
-                    CircularProgressIndicator()
-                } else if (reviews.isEmpty()) {
-                    Text("Aún no tiene reseñas", style = MaterialTheme.typography.body2)
-                } else {
-                    val avg = reviews.map { it.rating }.average()
-                    Text("⭐ Promedio: %.1f".format(avg), style = MaterialTheme.typography.subtitle1)
-                    Spacer(Modifier.height(12.dp))
-
-                    LazyColumn {
-                        items(reviews) { r ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    items(reviews) { r ->
+                        Column(modifier = Modifier.fillMaxWidth()) {
                             Text("De ${r.fromUserId}: ${r.rating} ★", style = MaterialTheme.typography.body1)
                             if (r.comment.isNotBlank()) {
                                 Text(r.comment, style = MaterialTheme.typography.body2)
