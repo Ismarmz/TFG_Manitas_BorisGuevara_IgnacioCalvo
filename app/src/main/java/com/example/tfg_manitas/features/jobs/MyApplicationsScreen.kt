@@ -11,55 +11,99 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.example.tfg_manitas.data.repository.ReviewRepository
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun MyApplicationsScreen(jobViewModel: JobViewModel = viewModel()) {
+fun MyApplicationsScreen(
+    jobViewModel: JobViewModel = viewModel(),
+    reviewRepo: ReviewRepository = ReviewRepository(),
+    navController: NavHostController
+) {
     val allJobs by jobViewModel.availableJobs.collectAsState()
     val isLoading by jobViewModel.isLoading.collectAsState()
     val error by jobViewModel.error.collectAsState()
-    val userId = FirebaseAuth.getInstance().currentUser?.uid
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
     val context = LocalContext.current
 
-    val appliedJobs = allJobs.filter { it.applicants.contains(userId) }
+    val appliedJobs = allJobs.filter { job ->
+        job.applicants.contains(currentUserId)
+    }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         Text("Mis Postulaciones", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else if (!error.isNullOrEmpty()) {
-            Text("Error: $error", color = Color.Red)
-        } else if (appliedJobs.isEmpty()) {
-            Text("Aún no te has postulado a ningún trabajo.")
-        } else {
-            LazyColumn {
-                items(appliedJobs) { job ->
-                    Card(
-                        elevation = 4.dp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(text = job.title, style = MaterialTheme.typography.h6)
-                            Text("📍 ${job.location}")
-                            Text("🕒 ${job.dateTime}")
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = job.description)
+        when {
+            isLoading -> {
+                CircularProgressIndicator()
+            }
+            !error.isNullOrEmpty() -> {   // <-- aquí el cambio
+                Text("Error: $error", color = Color.Red)
+            }
+            appliedJobs.isEmpty() -> {
+                Text("Aún no te has postulado a ningún trabajo.")
+            }
+            else -> {
+                LazyColumn {
+                    items(appliedJobs) { job ->
+                        Card(
+                            elevation = 4.dp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text(job.title, style = MaterialTheme.typography.h6)
+                                Text("📍 ${job.location}")
+                                Text("🕒 ${job.dateTime}")
+                                Spacer(Modifier.height(8.dp))
+                                Text(job.description)
 
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            when {
-                                job.selectedWorkerId == userId -> {
-                                    Text("✅ Fuiste seleccionado", color = Color.Green)
+                                Spacer(Modifier.height(8.dp))
+                                when {
+                                    job.selectedWorkerId == currentUserId -> {
+                                        Text("✅ Fuiste seleccionado", color = Color.Green)
+                                    }
+                                    job.selectedWorkerId != null -> {
+                                        Text("❌ No fuiste seleccionado", color = Color.Red)
+                                    }
+                                    else -> {
+                                        Text("⏳ En espera de decisión", color = Color.Gray)
+                                    }
                                 }
-                                job.selectedWorkerId != null && job.selectedWorkerId != userId -> {
-                                    Text("❌ No fuiste seleccionado", color = Color.Red)
-                                }
-                                else -> {
-                                    Text("⏳ En espera de decisión", color = Color.Gray)
+
+                                Spacer(Modifier.height(8.dp))
+
+                                // Solo si completado y eres el seleccionado
+                                if (job.selectedWorkerId == currentUserId && job.isCompleted) {
+                                    var hasReviewed by remember { mutableStateOf(false) }
+                                    LaunchedEffect(job.id) {
+                                        reviewRepo.hasReviewed(job.id, currentUserId)
+                                            .onSuccess { hasReviewed = it }
+                                    }
+
+                                    if (!hasReviewed) {
+                                        Button(
+                                            onClick = {
+                                                navController.navigate("review/${job.id}/${job.userId}")
+                                            },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text("Valorar al contratista")
+                                        }
+                                    } else {
+                                        Text(
+                                            "Ya valoraste al contratista",
+                                            color = Color.Gray,
+                                            modifier = Modifier.padding(8.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

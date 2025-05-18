@@ -9,6 +9,8 @@ data class Job(
     val dateTime: String = "",
     val timestamp: Long = System.currentTimeMillis(),
     val userId: String = "",
+    val isCompleted: Boolean = false,
+
 
     val applicants: List<String> = listOf(),
     val selectedWorkerId: String? = null

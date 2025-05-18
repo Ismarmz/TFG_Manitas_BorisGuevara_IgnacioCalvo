@@ -31,7 +31,6 @@ fun RegisterScreen(navController: NavHostController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Crear Cuenta", style = MaterialTheme.typography.h5)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -98,8 +97,8 @@ fun RegisterScreen(navController: NavHostController) {
                             user?.sendEmailVerification()
                             Toast.makeText(context, "Registro exitoso. Verifica tu correo.", Toast.LENGTH_LONG).show()
 
-                            // 🔄 Redirigir al completar perfil
-                            navController.navigate("completeProfile") {
+                            // ✅ Redirigir a pantalla de verificación
+                            navController.navigate("verifyEmail") {
                                 popUpTo("register") { inclusive = true }
                             }
                         } else {

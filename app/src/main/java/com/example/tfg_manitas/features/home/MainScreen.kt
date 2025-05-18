@@ -1,58 +1,78 @@
 package com.example.tfg_manitas.features.home
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.example.tfg_manitas.features.jobs.AvailableJobsScreen
-import com.example.tfg_manitas.features.jobs.JobsListScreen
-import com.example.tfg_manitas.features.jobs.MyApplicationsScreen
-import com.example.tfg_manitas.features.jobs.PostJobScreen
+import androidx.navigation.NavType
+import androidx.navigation.compose.*
+import androidx.navigation.navArgument
+import com.example.tfg_manitas.data.repository.ReviewRepository
+import com.example.tfg_manitas.features.auth.ResetPasswordScreen
+import com.example.tfg_manitas.features.jobs.*
+import com.example.tfg_manitas.features.profile.CompleteProfileScreen
+import com.example.tfg_manitas.features.profile.PublicProfileScreen
 import com.example.tfg_manitas.features.profile.ProfileScreen
+import com.example.tfg_manitas.features.auth.RegisterScreen
+import com.example.authapp.ui.screens.LoginScreen
+import com.example.tfg_manitas.features.reviews.ReviewScreen
 import com.google.firebase.auth.FirebaseAuth
 
+@Composable
+fun AppNavigation(navController: NavHostController, startDestination: String) {
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable("login") { LoginScreen(navController) }
+        composable("register") { RegisterScreen(navController) }
+        composable("completeProfile") { CompleteProfileScreen(navController) }
+        composable("resetPassword") { ResetPasswordScreen(navController) }
+        composable("Main") { MainScreen(rootNavController = navController) }
+        // Rutas de reseña y perfil público
+        composable(
+            route = "review/{jobId}/{toUserId}",
+            arguments = listOf(
+                navArgument("jobId") { type = NavType.StringType },
+                navArgument("toUserId") { type = NavType.StringType }
+            )
+        ) { back ->
+            val jobId = back.arguments!!.getString("jobId")!!
+            val toUserId = back.arguments!!.getString("toUserId")!!
+            ReviewScreen(jobId, toUserId, navController)
+        }
+        composable(
+            route = "publicProfile/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { back ->
+            val userId = back.arguments!!.getString("userId")!!
+            PublicProfileScreen(userId, navController)
+        }
+    }
+}
 
 @Composable
 fun MainScreen(rootNavController: NavHostController) {
     val navController = rememberNavController()
-
     val items = listOf(
         BottomNavItem("Inicio", "home", Icons.Default.Home),
-        BottomNavItem("Publicar", "post", Icons.Default.Add),
-        BottomNavItem("Mis trabajos", "jobs", Icons.Default.List),
-        BottomNavItem("Buscar", "explore", Icons.Default.Search),
-        BottomNavItem("Perfil", "profile", Icons.Default.Person),
-        BottomNavItem("Mis solicitudes", "applications", Icons.Default.Check)
-
+        BottomNavItem("Mis solicitudes", "applications", Icons.Default.Check),
+        BottomNavItem("Publicar", "publish", Icons.Default.Add),
+        BottomNavItem("Perfil", "profile", Icons.Default.Person)
     )
 
 
     Scaffold(
         bottomBar = {
             BottomNavigation(elevation = 8.dp) {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
+                val backEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = backEntry?.destination?.route
                 items.forEach { item ->
                     BottomNavigationItem(
                         icon = { Icon(item.icon, contentDescription = item.label) },
@@ -70,38 +90,40 @@ fun MainScreen(rootNavController: NavHostController) {
                     )
                 }
             }
-        }
+        },
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable("home") {
-                HomeContent(
-                    onLogout = {
+        Box(modifier = Modifier.padding(innerPadding)) {
+            NavHost(navController = navController, startDestination = "home") {
+                composable("home") {
+                    AvailableJobsScreen(
+                        navController = rootNavController,
+                        jobViewModel = viewModel()
+                    )
+                }
+                composable("applications") {
+                    MyApplicationsScreen(
+                        jobViewModel = viewModel(),
+                        reviewRepo = ReviewRepository(),
+                        navController = rootNavController
+                    )
+                }
+                composable("jobs") {
+                    JobsListScreen(
+                        jobViewModel = viewModel(),
+                        navController = rootNavController
+                    )
+                }
+                composable("profile") {
+                    ProfileScreen(onLogout = {
                         rootNavController.navigate("login") {
                             popUpTo("Main") { inclusive = true }
                         }
-                    }
-                )
+                    })
+                }
+                composable("publish") {
+                    PublishTabScreen(navController = rootNavController)
+                }
             }
-            composable("post") {
-                PostJobScreen(navController = rootNavController)
-            }
-            composable("jobs") {
-                JobsListScreen()
-            }
-            composable("explore") {
-                AvailableJobsScreen(navController = rootNavController)
-            }
-            composable("profile") {
-                ProfileScreen()
-            }
-            composable("applications") {
-                MyApplicationsScreen()
-            }
-
         }
     }
 }

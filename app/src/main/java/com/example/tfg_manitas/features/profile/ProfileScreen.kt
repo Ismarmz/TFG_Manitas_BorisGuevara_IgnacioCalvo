@@ -23,7 +23,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(onLogout: () -> Unit) {
     val auth = FirebaseAuth.getInstance()
     val userId = auth.currentUser?.uid ?: return
     val context = LocalContext.current
@@ -74,6 +74,15 @@ fun ProfileScreen() {
                         isEditing = true
                     }) {
                         Text("Editar perfil")
+                    }
+
+                    DropdownMenuItem(onClick = {
+                        expanded = false
+                        FirebaseAuth.getInstance().signOut()
+                        Toast.makeText(context, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                        onLogout()
+                    }) {
+                        Text("Cerrar sesión")
                     }
                 }
             }

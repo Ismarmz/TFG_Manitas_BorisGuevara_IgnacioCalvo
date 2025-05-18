@@ -13,11 +13,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val auth = FirebaseAuth.getInstance()
+            val user = auth.currentUser
 
-            // Verificar si el usuario ya está logueado
-            val startDestination = if (auth.currentUser != null) "Main" else "login"
+            // ✅ Determinar la pantalla inicial según el estado de verificación
+            val startDestination = when {
+                user == null -> "login"
+                !user.isEmailVerified -> "verifyEmail"
+                else -> "Main"
+            }
 
-            AppNavigation(navController, startDestination)
+            // ✅ Navegación de toda la app con destino seguro
+            AppNavigation(navController = navController, startDestination = startDestination)
         }
     }
 }

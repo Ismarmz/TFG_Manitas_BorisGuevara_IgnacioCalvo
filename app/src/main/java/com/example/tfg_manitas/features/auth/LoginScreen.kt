@@ -27,11 +27,12 @@ fun LoginScreen(navController: NavHostController) {
     var isLoading by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = "Iniciar Sesión", style = MaterialTheme.typography.h5)
-
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
@@ -72,25 +73,27 @@ fun LoginScreen(navController: NavHostController) {
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         isLoading = false
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null && user.isEmailVerified) {
+                        val user = auth.currentUser
+
+                        if (task.isSuccessful && user != null) {
+                            if (user.isEmailVerified) {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     val result = UserRepository().getUserById(user.uid)
                                     if (result.isSuccess) {
-                                        // Perfil ya creado → ir a Main
                                         navController.navigate("Main") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     } else {
-                                        // Perfil NO creado → ir a completar perfil
                                         navController.navigate("completeProfile") {
                                             popUpTo("login") { inclusive = true }
                                         }
                                     }
                                 }
                             } else {
-                                errorMessage = "Verifica tu correo antes de iniciar sesión"
+                                Toast.makeText(context, "Debes verificar tu correo para continuar", Toast.LENGTH_LONG).show()
+                                navController.navigate("verifyEmail") {
+                                    popUpTo("login") { inclusive = true }
+                                }
                             }
                         } else {
                             val msg = task.exception?.message ?: "Error al iniciar sesión"
