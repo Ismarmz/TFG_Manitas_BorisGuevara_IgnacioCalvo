@@ -2,8 +2,12 @@ package com.example.tfg_manitas.features.auth
 
 import android.util.Patterns
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,106 +28,178 @@ fun RegisterScreen(navController: NavHostController) {
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = "Crear Cuenta", style = MaterialTheme.typography.h5)
-        Spacer(modifier = Modifier.height(16.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.9f),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Crear Cuenta",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo Electrónico") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(4.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text("Contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
+            Text(
+                text = "Únete para comenzar a ofrecer o solicitar trabajos.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
 
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirmar Contraseña") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Correo Electrónico") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
 
-        if (errorMessage != null) {
-            Text(text = errorMessage!!, color = MaterialTheme.colors.error)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = {
-                isLoading = true
-                errorMessage = null
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Contraseña") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
 
-                if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    errorMessage = "Correo electrónico no válido"
-                    isLoading = false
-                    return@Button
-                }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                if (password.length < 6) {
-                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
-                    isLoading = false
-                    return@Button
-                }
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Confirmar Contraseña") },
+                        singleLine = true,
+                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                            cursorColor = MaterialTheme.colorScheme.primary,
+                            focusedLabelColor = MaterialTheme.colorScheme.primary
+                        )
+                    )
 
-                if (password != confirmPassword) {
-                    errorMessage = "Las contraseñas no coinciden"
-                    isLoading = false
-                    return@Button
-                }
+                    if (!errorMessage.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = errorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
-                auth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        isLoading = false
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            user?.sendEmailVerification()
-                            Toast.makeText(context, "Registro exitoso. Verifica tu correo.", Toast.LENGTH_LONG).show()
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                            // ✅ Redirigir a pantalla de verificación
-                            navController.navigate("verifyEmail") {
-                                popUpTo("register") { inclusive = true }
+                    Button(
+                        onClick = {
+                            isLoading = true
+                            errorMessage = null
+
+                            when {
+                                !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                    errorMessage = "Correo electrónico no válido"
+                                    isLoading = false
+                                }
+
+                                password.length < 6 -> {
+                                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
+                                    isLoading = false
+                                }
+
+                                password != confirmPassword -> {
+                                    errorMessage = "Las contraseñas no coinciden"
+                                    isLoading = false
+                                }
+
+                                else -> {
+                                    auth.createUserWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener { task ->
+                                            isLoading = false
+                                            if (task.isSuccessful) {
+                                                auth.currentUser?.sendEmailVerification()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Registro exitoso. Verifica tu correo.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+
+                                                navController.navigate("verifyEmail") {
+                                                    popUpTo("register") { inclusive = true }
+                                                }
+                                            } else {
+                                                val errorCode =
+                                                    (task.exception as? com.google.firebase.auth.FirebaseAuthException)?.errorCode
+                                                errorMessage = when (errorCode) {
+                                                    "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado"
+                                                    "ERROR_WEAK_PASSWORD" -> "La contraseña es demasiado débil"
+                                                    else -> "Error al registrar. Inténtalo de nuevo."
+                                                }
+                                            }
+                                        }
+                                }
                             }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        enabled = !isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
                         } else {
-                            val errorCode = (task.exception as? com.google.firebase.auth.FirebaseAuthException)?.errorCode
-                            val errorMessageText = when (errorCode) {
-                                "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado"
-                                "ERROR_WEAK_PASSWORD" -> "La contraseña es demasiado débil"
-                                else -> "Error al registrar. Inténtalo de nuevo."
-                            }
-                            errorMessage = errorMessageText
+                            Text("Registrarse")
                         }
                     }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            } else {
-                Text("Registrarse")
-            }
-        }
 
-        TextButton(onClick = { navController.popBackStack() }) {
-            Text("¿Ya tienes cuenta? Inicia sesión")
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    TextButton(onClick = { navController.popBackStack() }) {
+                        Text("¿Ya tienes cuenta? Inicia sesión", color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
         }
     }
 }
