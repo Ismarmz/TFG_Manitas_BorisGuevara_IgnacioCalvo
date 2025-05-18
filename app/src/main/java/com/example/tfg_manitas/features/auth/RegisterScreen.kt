@@ -16,6 +16,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -148,7 +152,6 @@ fun RegisterScreen(navController: NavHostController) {
                                 else -> {
                                     auth.createUserWithEmailAndPassword(email, password)
                                         .addOnCompleteListener { task ->
-                                            isLoading = false
                                             if (task.isSuccessful) {
                                                 auth.currentUser?.sendEmailVerification()
                                                 Toast.makeText(
@@ -157,8 +160,11 @@ fun RegisterScreen(navController: NavHostController) {
                                                     Toast.LENGTH_LONG
                                                 ).show()
 
-                                                navController.navigate("verifyEmail") {
-                                                    popUpTo("register") { inclusive = true }
+                                                CoroutineScope(Dispatchers.Main).launch {
+                                                    delay(100) // ✅ Previene navegación inestable
+                                                    navController.navigate("verifyEmail") {
+                                                        popUpTo("register") { inclusive = true }
+                                                    }
                                                 }
                                             } else {
                                                 val errorCode =
@@ -169,6 +175,7 @@ fun RegisterScreen(navController: NavHostController) {
                                                     else -> "Error al registrar. Inténtalo de nuevo."
                                                 }
                                             }
+                                            isLoading = false
                                         }
                                 }
                             }
@@ -195,9 +202,26 @@ fun RegisterScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    TextButton(onClick = { navController.popBackStack() }) {
+                    var navigating by remember { mutableStateOf(false) }
+
+                    TextButton(
+                        onClick = {
+                            if (!navigating && navController.currentDestination?.route != "login") {
+                                navigating = true
+                                navController.navigate("login") {
+                                    popUpTo("register") { inclusive = true }
+                                }
+                            }
+                        },
+                        enabled = !navigating
+                    ) {
                         Text("¿Ya tienes cuenta? Inicia sesión", color = MaterialTheme.colorScheme.primary)
                     }
+
+                    LaunchedEffect(navController.currentBackStackEntry) {
+                        navigating = false
+                    }
+
                 }
             }
         }

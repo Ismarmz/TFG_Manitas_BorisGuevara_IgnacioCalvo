@@ -10,10 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable
 fun ResetPasswordScreen(navController: NavHostController) {
@@ -96,16 +99,19 @@ fun ResetPasswordScreen(navController: NavHostController) {
 
                             auth.sendPasswordResetEmail(email)
                                 .addOnCompleteListener { task ->
-                                    isLoading = false
-                                    if (task.isSuccessful) {
-                                        Toast.makeText(
-                                            context,
-                                            "Correo de recuperación enviado",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        navController.popBackStack()
-                                    } else {
-                                        errorMessage = "Error al enviar correo de recuperación"
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        if (task.isSuccessful) {
+                                            Toast.makeText(
+                                                context,
+                                                "Correo de recuperación enviado",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            delay(100) // ✅ Previene navegación prematura
+                                            navController.popBackStack()
+                                        } else {
+                                            errorMessage = "Error al enviar correo de recuperación"
+                                        }
+                                        isLoading = false
                                     }
                                 }
                         },
@@ -131,9 +137,26 @@ fun ResetPasswordScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    TextButton(onClick = { navController.popBackStack() }) {
+                    var navigating by remember { mutableStateOf(false) }
+
+                    TextButton(
+                        onClick = {
+                            if (!navigating && navController.currentDestination?.route != "login") {
+                                navigating = true
+                                navController.navigate("login") {
+                                    popUpTo("resetPassword") { inclusive = true }
+                                }
+                            }
+                        },
+                        enabled = !navigating
+                    ) {
                         Text("Volver al Login", color = MaterialTheme.colorScheme.primary)
                     }
+
+                    LaunchedEffect(navController.currentBackStackEntry) {
+                        navigating = false
+                    }
+
                 }
             }
         }

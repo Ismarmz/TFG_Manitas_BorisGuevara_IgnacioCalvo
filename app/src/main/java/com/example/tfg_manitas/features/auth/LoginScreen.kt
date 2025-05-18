@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 
 
 
+import kotlinx.coroutines.delay
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -46,9 +47,6 @@ fun LoginScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxWidth(0.9f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-
-
             Text(
                 text = "Iniciar Sesión",
                 style = MaterialTheme.typography.headlineMedium,
@@ -57,11 +55,7 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = "Accede a tu cuenta para continuar",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
+
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -128,12 +122,11 @@ fun LoginScreen(navController: NavHostController) {
 
                             auth.signInWithEmailAndPassword(email, password)
                                 .addOnCompleteListener { task ->
-                                    isLoading = false
                                     val user = auth.currentUser
-
                                     if (task.isSuccessful && user != null) {
                                         if (user.isEmailVerified) {
                                             CoroutineScope(Dispatchers.Main).launch {
+                                                delay(100) // ✅ Previene navegación inestable
                                                 val result = UserRepository().getUserById(user.uid)
                                                 if (result.isSuccess) {
                                                     navController.navigate("Main") {
@@ -159,6 +152,7 @@ fun LoginScreen(navController: NavHostController) {
                                         val msg = task.exception?.message ?: "Error al iniciar sesión"
                                         errorMessage = msg
                                     }
+                                    isLoading = false
                                 }
                         },
                         modifier = Modifier
@@ -183,12 +177,35 @@ fun LoginScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    TextButton(onClick = { navController.navigate("register") }) {
+                    var navigating by remember { mutableStateOf(false) }
+
+                    TextButton(
+                        onClick = {
+                            if (!navigating && navController.currentDestination?.route != "register") {
+                                navigating = true
+                                navController.navigate("register")
+                            }
+                        },
+                        enabled = !navigating
+                    ) {
                         Text("¿No tienes cuenta? Regístrate", color = MaterialTheme.colorScheme.primary)
                     }
 
-                    TextButton(onClick = { navController.navigate("resetPassword") }) {
+                    TextButton(
+                        onClick = {
+                            if (!navigating && navController.currentDestination?.route != "resetPassword") {
+                                navigating = true
+                                navController.navigate("resetPassword")
+                            }
+                        },
+                        enabled = !navigating
+                    ) {
                         Text("¿Olvidaste tu contraseña?", color = MaterialTheme.colorScheme.primary)
+                    }
+
+// ✅ Rehabilita navegación cuando cambia la pantalla
+                    LaunchedEffect(navController.currentBackStackEntry) {
+                        navigating = false
                     }
                 }
             }
