@@ -7,41 +7,45 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-// PALETA PERSONALIZADA
-val AzulOscuro = Color(0xFF1E3A8A)
-val AzulClaro = Color(0xFF93C5FD)
+// 🎨 PALETA PERSONALIZADA (basada en logo Manitas)
+val MangoAmarillo = Color(0xFFF4A950)
+val RojoTierra = Color(0xFFA93F1F)
+val AzulGrafito = Color(0xFF2F4C5A)
+val BeigePiel = Color(0xFFF9C89B)
+val MarronOscuro = Color(0xFF4E2C1E)
+
+// 🟢 Colores adicionales (accesibilidad y consistencia)
+val VerdeExito = Color(0xFF10B981)
+val RojoError = Color(0xFFEF4444)
 val Blanco = Color(0xFFFFFFFF)
 val GrisClaro = Color(0xFFE5E7EB)
 val GrisOscuro = Color(0xFF4B5563)
-val VerdeExito = Color(0xFF10B981)
-val RojoError = Color(0xFFEF4444)
 
 private val LightColorScheme = lightColorScheme(
-    primary = AzulOscuro,
-    secondary = AzulClaro,
-    background = Blanco,
-    surface = Blanco,
-    error = RojoError,
-    onPrimary = Blanco,
-    onSecondary = GrisOscuro,
-    onBackground = GrisOscuro,
-    onSurface = GrisOscuro,
-    onError = Blanco
+    primary = AzulGrafito,
+    secondary = MangoAmarillo,
+    background = BeigePiel,
+    surface = Color.White,
+    error = RojoTierra,
+    onPrimary = Color.White,
+    onSecondary = MarronOscuro,
+    onBackground = MarronOscuro,
+    onSurface = MarronOscuro,
+    onError = Color.White
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AzulClaro,
-    secondary = AzulOscuro,
-    background = GrisOscuro,
-    surface = GrisOscuro,
-    error = RojoError,
-    onPrimary = GrisClaro,
-    onSecondary = Blanco,
-    onBackground = Blanco,
-    onSurface = Blanco,
-    onError = Blanco
+    primary = MangoAmarillo,
+    secondary = RojoTierra,
+    background = MarronOscuro,
+    surface = AzulGrafito,
+    error = Color.Red,
+    onPrimary = Color.Black,
+    onSecondary = Color.White,
+    onBackground = BeigePiel,
+    onSurface = BeigePiel,
+    onError = Color.Black
 )
-
 @Composable
 fun TFG_ManitasTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

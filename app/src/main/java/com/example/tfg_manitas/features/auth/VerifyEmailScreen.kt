@@ -32,7 +32,6 @@ fun VerifyEmailScreen(navController: NavController) {
             modifier = Modifier.fillMaxWidth(0.9f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Encabezado
             Text(
                 text = "Verificación de Correo",
                 style = MaterialTheme.typography.headlineMedium,
@@ -49,11 +48,13 @@ fun VerifyEmailScreen(navController: NavController) {
 
             Spacer(Modifier.height(32.dp))
 
-            // Card con acciones
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = MaterialTheme.shapes.medium
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -135,7 +136,6 @@ fun VerifyEmailScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Botón para volver al login
             TextButton(onClick = {
                 navController.navigate("login") {
                     popUpTo("verifyEmail") { inclusive = true }

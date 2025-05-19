@@ -26,6 +26,7 @@ fun ResetPasswordScreen(navController: NavHostController) {
     var email by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var navigating by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -56,8 +57,11 @@ fun ResetPasswordScreen(navController: NavHostController) {
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = MaterialTheme.shapes.medium
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     OutlinedTextField(
@@ -106,8 +110,10 @@ fun ResetPasswordScreen(navController: NavHostController) {
                                                 "Correo de recuperación enviado",
                                                 Toast.LENGTH_LONG
                                             ).show()
-                                            delay(100) // ✅ Previene navegación prematura
-                                            navController.popBackStack()
+                                            delay(100)
+                                            navController.navigate("login") {
+                                                popUpTo("resetPassword") { inclusive = true }
+                                            }
                                         } else {
                                             errorMessage = "Error al enviar correo de recuperación"
                                         }
@@ -137,8 +143,6 @@ fun ResetPasswordScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    var navigating by remember { mutableStateOf(false) }
-
                     TextButton(
                         onClick = {
                             if (!navigating && navController.currentDestination?.route != "login") {
@@ -156,7 +160,6 @@ fun ResetPasswordScreen(navController: NavHostController) {
                     LaunchedEffect(navController.currentBackStackEntry) {
                         navigating = false
                     }
-
                 }
             }
         }

@@ -31,6 +31,7 @@ fun RegisterScreen(navController: NavHostController) {
     var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var navigating by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -40,8 +41,7 @@ fun RegisterScreen(navController: NavHostController) {
         contentAlignment = Alignment.Center
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth(0.9f),
+            modifier = Modifier.fillMaxWidth(0.9f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -62,8 +62,11 @@ fun RegisterScreen(navController: NavHostController) {
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = MaterialTheme.shapes.medium
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     OutlinedTextField(
@@ -161,7 +164,7 @@ fun RegisterScreen(navController: NavHostController) {
                                                 ).show()
 
                                                 CoroutineScope(Dispatchers.Main).launch {
-                                                    delay(100) // ✅ Previene navegación inestable
+                                                    delay(100)
                                                     navController.navigate("verifyEmail") {
                                                         popUpTo("register") { inclusive = true }
                                                     }
@@ -202,8 +205,6 @@ fun RegisterScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    var navigating by remember { mutableStateOf(false) }
-
                     TextButton(
                         onClick = {
                             if (!navigating && navController.currentDestination?.route != "login") {
@@ -221,7 +222,6 @@ fun RegisterScreen(navController: NavHostController) {
                     LaunchedEffect(navController.currentBackStackEntry) {
                         navigating = false
                     }
-
                 }
             }
         }

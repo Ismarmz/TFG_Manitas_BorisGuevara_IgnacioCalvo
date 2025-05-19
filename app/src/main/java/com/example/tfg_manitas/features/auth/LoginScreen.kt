@@ -1,7 +1,6 @@
 package com.example.tfg_manitas.features.auth
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -20,11 +18,8 @@ import com.example.tfg_manitas.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-
-
-
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -35,6 +30,7 @@ fun LoginScreen(navController: NavHostController) {
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var navigating by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -55,14 +51,21 @@ fun LoginScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(4.dp))
 
-
+            Text(
+                text = "Accede a tu cuenta para continuar",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     OutlinedTextField(
@@ -126,7 +129,7 @@ fun LoginScreen(navController: NavHostController) {
                                     if (task.isSuccessful && user != null) {
                                         if (user.isEmailVerified) {
                                             CoroutineScope(Dispatchers.Main).launch {
-                                                delay(100) // ✅ Previene navegación inestable
+                                                delay(100)
                                                 val result = UserRepository().getUserById(user.uid)
                                                 if (result.isSuccess) {
                                                     navController.navigate("Main") {
@@ -177,8 +180,6 @@ fun LoginScreen(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    var navigating by remember { mutableStateOf(false) }
-
                     TextButton(
                         onClick = {
                             if (!navigating && navController.currentDestination?.route != "register") {
@@ -203,7 +204,6 @@ fun LoginScreen(navController: NavHostController) {
                         Text("¿Olvidaste tu contraseña?", color = MaterialTheme.colorScheme.primary)
                     }
 
-// ✅ Rehabilita navegación cuando cambia la pantalla
                     LaunchedEffect(navController.currentBackStackEntry) {
                         navigating = false
                     }
