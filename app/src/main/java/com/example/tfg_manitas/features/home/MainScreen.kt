@@ -23,7 +23,7 @@ import com.example.tfg_manitas.features.profile.CompleteProfileScreen
 import com.example.tfg_manitas.features.profile.PublicProfileScreen
 import com.example.tfg_manitas.features.profile.ProfileScreen
 import com.example.tfg_manitas.features.auth.RegisterScreen
-import com.example.authapp.ui.screens.LoginScreen
+import com.example.tfg_manitas.features.auth.LoginScreen
 import com.example.tfg_manitas.features.reviews.ReviewScreen
 import com.google.firebase.auth.FirebaseAuth
 

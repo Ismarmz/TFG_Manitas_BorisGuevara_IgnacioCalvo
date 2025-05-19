@@ -11,7 +11,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.authapp.ui.screens.LoginScreen
+import com.example.tfg_manitas.features.auth.LoginScreen
 import com.example.tfg_manitas.features.auth.RegisterScreen
 import com.example.tfg_manitas.features.auth.ResetPasswordScreen
 import com.example.tfg_manitas.features.auth.VerifyEmailScreen
