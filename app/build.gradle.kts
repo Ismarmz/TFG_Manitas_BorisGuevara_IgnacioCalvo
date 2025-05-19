@@ -65,6 +65,9 @@ dependencies {
 
     implementation(libs.material3)
 
+    implementation("androidx.compose.foundation:foundation:1.5.0")
+
+
 
     implementation(libs.ui)
     implementation(libs.androidx.material)
