@@ -94,31 +94,7 @@ fun PublicProfileScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Sección de reseñas
-            if (isReviewsLoading) {
-                CircularProgressIndicator()
-            } else if (reviews.isEmpty()) {
-                Text("Aún no tiene reseñas", style = MaterialTheme.typography.body2)
-            } else {
-                val avg = reviews.map { it.rating }.average()
-                Text("⭐ Promedio: %.1f".format(avg), style = MaterialTheme.typography.subtitle1)
-                Spacer(Modifier.height(12.dp))
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    items(reviews) { r ->
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Text("De ${r.fromUserId}: ${r.rating} ★", style = MaterialTheme.typography.body1)
-                            if (r.comment.isNotBlank()) {
-                                Text(r.comment, style = MaterialTheme.typography.body2)
-                            }
-                            Divider(Modifier.padding(vertical = 8.dp))
-                        }
-                    }
-                }
-            }
+            UserReviewsSection(userId = user!!.uid)
         }
     }
 }

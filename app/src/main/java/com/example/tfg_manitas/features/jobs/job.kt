@@ -9,6 +9,8 @@ data class Job(
     val dateTime: String = "",
     val timestamp: Long = System.currentTimeMillis(),
     val userId: String = "",
+    @com.google.firebase.firestore.PropertyName("isCompleted")
+    @get:com.google.firebase.firestore.PropertyName("isCompleted")
     val isCompleted: Boolean = false,
 
 

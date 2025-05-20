@@ -81,7 +81,7 @@ fun ReviewScreen(
                 errorMsg = null
 
                 scope.launch {
-                    val has = reviewRepo.hasReviewed(jobId, currentUid)
+                    val has = reviewRepo.hasReviewed(jobId, currentUid, toUserId)
                     if (has.isSuccess && has.getOrNull() == true) {
                         errorMsg = "Ya has dejado una reseña para este trabajo"
                         isSubmitting = false
