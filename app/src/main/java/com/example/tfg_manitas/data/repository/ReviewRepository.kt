@@ -40,11 +40,12 @@ class ReviewRepository(
 
 
     // Opcional: comprobar si ya existe reseña de este usuario para este job
-    suspend fun hasReviewed(jobId: String, fromUserId: String): Result<Boolean> {
+    suspend fun hasReviewed(jobId: String, fromUserId: String, toUserId: String): Result<Boolean> {
         return try {
             val snapshot = reviewsCol
                 .whereEqualTo("jobId", jobId)
                 .whereEqualTo("fromUserId", fromUserId)
+                .whereEqualTo("toUserId", toUserId)
                 .get()
                 .await()
             Result.success(!snapshot.isEmpty)
@@ -52,4 +53,5 @@ class ReviewRepository(
             Result.failure(e)
         }
     }
+
 }
