@@ -25,6 +25,8 @@ import com.example.tfg_manitas.features.profile.ProfileScreen
 import com.example.tfg_manitas.features.auth.RegisterScreen
 import com.example.tfg_manitas.features.auth.LoginScreen
 import com.example.tfg_manitas.features.reviews.ReviewScreen
+import com.example.tfg_manitas.features.chat.ChatListScreen
+import com.example.tfg_manitas.features.chat.Chat
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
@@ -64,6 +66,7 @@ fun MainScreen(rootNavController: NavHostController) {
         BottomNavItem("Inicio", "home", Icons.Default.Home),
         BottomNavItem("Mis solicitudes", "applications", Icons.Default.Check),
         BottomNavItem("Publicar", "publish", Icons.Default.Add),
+        BottomNavItem("Chat", "chatList", Icons.Default.Chat),
         BottomNavItem("Perfil", "profile", Icons.Default.Person)
     )
 
@@ -123,6 +126,10 @@ fun MainScreen(rootNavController: NavHostController) {
                 composable("publish") {
                     PublishTabScreen(navController = rootNavController)
                 }
+                composable("chatList") {
+                    ChatListScreen(navController = rootNavController)
+                }
+
             }
         }
     }

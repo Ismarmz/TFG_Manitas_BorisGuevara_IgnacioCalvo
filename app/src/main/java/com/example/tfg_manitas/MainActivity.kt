@@ -1,5 +1,8 @@
 package com.example.tfg_manitas
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,7 +15,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TFG_ManitasTheme {  // ✅ Tema personalizado aplicado aquí
+            TFG_ManitasTheme {  // Tema personalizado aplicado aquí
                 val navController = rememberNavController()
                 val auth = FirebaseAuth.getInstance()
                 val user = auth.currentUser
@@ -26,5 +29,17 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(navController = navController, startDestination = startDestination)
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = "Chat"
+            val descriptionText = "Notificaciones de nuevos mensajes"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("chat_channel", name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+
     }
 }

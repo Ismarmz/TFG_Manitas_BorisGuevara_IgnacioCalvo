@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.example.tfg_manitas.data.repository.ChatRepository
+
+
 
 class JobViewModel : ViewModel() {
 
@@ -175,15 +178,34 @@ class JobViewModel : ViewModel() {
     }
 
 
-    suspend fun selectWorker(jobId: String, workerId: String): Result<Unit> {
-        return try {
-            db.collection("jobs")
-                .document(jobId)
-                .update("selectedWorkerId", workerId)
-                .await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+    fun selectWorkerAndCreateChat(jobId: String, workerId: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        viewModelScope.launch {
+            val currentUserId = auth.currentUser?.uid
+            if (currentUserId == null) {
+                onFailure("Usuario no autenticado")
+                return@launch
+            }
+
+            try {
+                db.collection("jobs")
+                    .document(jobId)
+                    .update("selectedWorkerId", workerId)
+                    .await()
+
+                val chatRepo = ChatRepository()
+                val result = chatRepo.getOrCreateChat(
+                    jobId = jobId,
+                    userIds = listOf(currentUserId, workerId)
+                )
+
+                if (result.isSuccess) {
+                    onSuccess()
+                } else {
+                    onFailure(result.exceptionOrNull()?.message ?: "Error al crear chat")
+                }
+            } catch (e: Exception) {
+                onFailure(e.message ?: "Error desconocido")
+            }
         }
     }
 

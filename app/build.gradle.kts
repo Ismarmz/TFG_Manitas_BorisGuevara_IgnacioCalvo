@@ -64,16 +64,17 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.material3)
-
-    implementation("androidx.compose.foundation:foundation:1.5.0")
-
-
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.foundation)
 
     implementation(libs.ui)
     implementation(libs.androidx.material)
     implementation(libs.ui.tooling.preview)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.common.android)
+    implementation(libs.generativeai)
+    implementation(libs.google.firebase.storage.ktx)
+    implementation(libs.google.firebase.messaging.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -82,4 +83,10 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.coil.compose)
+
+    implementation(libs.firebase.messaging.ktx)
+
 }

@@ -15,6 +15,7 @@ import com.example.tfg_manitas.features.auth.LoginScreen
 import com.example.tfg_manitas.features.auth.RegisterScreen
 import com.example.tfg_manitas.features.auth.ResetPasswordScreen
 import com.example.tfg_manitas.features.auth.VerifyEmailScreen
+import com.example.tfg_manitas.features.chat.ChatScreen
 import com.example.tfg_manitas.features.home.MainScreen
 import com.example.tfg_manitas.features.jobs.EditJobScreen
 import com.example.tfg_manitas.features.jobs.JobViewModel
@@ -36,6 +37,18 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
         composable("publish") { PublishTabScreen(navController = navController) }
         composable("verifyEmail") { VerifyEmailScreen(navController) }
         composable("post") { PostJobScreen(navController = navController) }
+        composable(
+            "chat/{jobId}/{otherUserId}",
+            arguments = listOf(
+                navArgument("jobId") { type = NavType.StringType },
+                navArgument("otherUserId") { type = NavType.StringType }
+            )
+        ) { backStack ->
+            val jobId = backStack.arguments?.getString("jobId") ?: ""
+            val otherUserId = backStack.arguments?.getString("otherUserId") ?: ""
+            ChatScreen(jobId = jobId, otherUserId = otherUserId)
+        }
+
 
 
 

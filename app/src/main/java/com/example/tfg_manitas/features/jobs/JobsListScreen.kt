@@ -84,13 +84,17 @@ fun JobsListScreen(
                                             Button(
                                                 onClick = {
                                                     coroutineScope.launch {
-                                                        val result = jobViewModel.selectWorker(job.id, applicantId)
-                                                        if (result.isSuccess) {
-                                                            Toast.makeText(context, "Trabajador asignado", Toast.LENGTH_SHORT).show()
-                                                            jobViewModel.refreshJobs()
-                                                        } else {
-                                                            Toast.makeText(context, "Error al asignar", Toast.LENGTH_SHORT).show()
-                                                        }
+                                                        jobViewModel.selectWorkerAndCreateChat(
+                                                            jobId = job.id,
+                                                            workerId = applicantId,
+                                                            onSuccess = {
+                                                                Toast.makeText(context, "Trabajador asignado", Toast.LENGTH_SHORT).show()
+                                                                jobViewModel.refreshJobs()
+                                                            },
+                                                            onFailure = { error ->
+                                                                Toast.makeText(context, "Error al asignar: $error", Toast.LENGTH_SHORT).show()
+                                                            }
+                                                        )
                                                     }
                                                 },
                                                 enabled = job.selectedWorkerId == null
