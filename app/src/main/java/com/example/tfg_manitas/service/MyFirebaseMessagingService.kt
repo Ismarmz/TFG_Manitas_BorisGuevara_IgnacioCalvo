@@ -8,6 +8,8 @@ import androidx.annotation.RequiresPermission
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.example.tfg_manitas.R
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
@@ -32,5 +34,17 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         super.onNewToken(token)
         Log.d("FCM", "Nuevo token FCM: $token")
 
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId != null) {
+            val db = FirebaseFirestore.getInstance()
+            db.collection("users").document(userId).update("fcmToken", token)
+                .addOnSuccessListener {
+                    Log.d("FCM", "Token guardado exitosamente")
+                }
+                .addOnFailureListener {
+                    Log.e("FCM", "Error al guardar token", it)
+                }
+        }
     }
+
 }

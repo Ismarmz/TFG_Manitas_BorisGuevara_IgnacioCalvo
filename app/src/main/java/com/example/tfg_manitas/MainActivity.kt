@@ -8,14 +8,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.compose.rememberNavController
 import com.example.tfg_manitas.navigation.AppNavigation
-import com.example.tfg_manitas.ui.theme.TFG_ManitasTheme  // 👈 Asegúrate de importar esto
+import com.example.tfg_manitas.ui.theme.TFG_ManitasTheme
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            TFG_ManitasTheme {  // Tema personalizado aplicado aquí
+            TFG_ManitasTheme {
                 val navController = rememberNavController()
                 val auth = FirebaseAuth.getInstance()
                 val user = auth.currentUser
@@ -29,6 +31,8 @@ class MainActivity : ComponentActivity() {
                 AppNavigation(navController = navController, startDestination = startDestination)
             }
         }
+
+        // Crear canal de notificaciones
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = "Chat"
             val descriptionText = "Notificaciones de nuevos mensajes"
@@ -41,5 +45,17 @@ class MainActivity : ComponentActivity() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        // Guardar token FCM al iniciar la app
+        val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+        if (currentUserId != null) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    val db = FirebaseFirestore.getInstance()
+                    db.collection("users").document(currentUserId).update("fcmToken", token)
+                }
+            }
+        }
     }
 }
+git add .
