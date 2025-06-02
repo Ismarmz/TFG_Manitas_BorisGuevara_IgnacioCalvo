@@ -46,7 +46,11 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
         ) { backStack ->
             val jobId = backStack.arguments?.getString("jobId") ?: ""
             val otherUserId = backStack.arguments?.getString("otherUserId") ?: ""
-            ChatScreen(jobId = jobId, otherUserId = otherUserId)
+            ChatScreen(
+                jobId = jobId,
+                otherUserId = otherUserId,
+                navController = navController
+            )
         }
 
 

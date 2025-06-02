@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.generativeai)
     implementation(libs.google.firebase.storage.ktx)
     implementation(libs.google.firebase.messaging.ktx)
+    implementation(libs.androidx.media3.common.ktx)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

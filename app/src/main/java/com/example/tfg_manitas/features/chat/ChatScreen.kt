@@ -1,11 +1,12 @@
 package com.example.tfg_manitas.features.chat
 
+import android.Manifest
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,32 +19,33 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.clip
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.example.tfg_manitas.data.repository.ChatRepository
+import com.example.tfg_manitas.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(
     jobId: String,
     otherUserId: String,
+    navController: NavHostController,
     currentUserId: String = FirebaseAuth.getInstance().currentUser?.uid.orEmpty(),
     chatRepository: ChatRepository = ChatRepository()
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val userName = remember { mutableStateOf("...") }
 
     var messages by remember { mutableStateOf<List<Message>>(emptyList()) }
     var messageText by remember { mutableStateOf("") }
@@ -79,13 +81,38 @@ fun ChatScreen(
                         )
                         chatRepository.sendMessage(chatId!!, imageMessage)
                     } catch (e: Exception) {
-                        Toast.makeText(context, "Error al subir imagen", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Error: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                        e.printStackTrace()
                     }
+
                 }
             }
         }
     )
 
+    // Back handler para volver a Main
+    BackHandler {
+        navController.navigate("Main") {
+            popUpTo("Main") { inclusive = true }
+        }
+    }
+
+    LaunchedEffect(otherUserId) {
+        val repo = UserRepository()
+        val result = repo.getUserById(otherUserId)
+        if (result.isSuccess) {
+            userName.value = result.getOrNull()?.name ?: otherUserId
+        }
+    }
+
+    if (chatId != null) {
+        DisposableEffect(chatId) {
+            ChatStateManager.activeChatId = chatId
+            onDispose {
+                ChatStateManager.activeChatId = null
+            }
+        }
+    }
 
     LaunchedEffect(jobId, otherUserId) {
         val result = chatRepository.getOrCreateChat(
@@ -104,13 +131,14 @@ fun ChatScreen(
                     }
                 }
             }
-
         } else {
             Toast.makeText(context, "Error al cargar chat", Toast.LENGTH_SHORT).show()
         }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+        TopAppBar(title = { Text(userName.value) })
+
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -210,12 +238,10 @@ fun ChatScreen(
                 } else {
                     permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                 }
-
                 imagePickerLauncher.launch("image/*")
             }) {
                 Icon(Icons.Default.Image, contentDescription = "Enviar imagen")
             }
-
 
             OutlinedTextField(
                 value = messageText,

@@ -14,6 +14,12 @@ class ChatRepository(
 
     // Crear chat si no existe
     suspend fun getOrCreateChat(jobId: String, userIds: List<String>): Result<Chat> {
+
+        if (userIds.toSet().size < 2) {
+            return Result.failure(Exception("No se puede crear un chat contigo mismo"))
+        }
+
+
         return try {
             val query = chatsCol
                 .whereEqualTo("jobId", jobId)

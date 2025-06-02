@@ -27,13 +27,29 @@ exports.sendChatNotification = onDocumentCreated("chats/{chatId}/messages/{messa
         return;
     }
 
-    const payload = {
-        notification: {
-            title: "Nuevo mensaje",
-            body: message.text || "Has recibido un mensaje",
-        },
-        token: token,
-    };
+    // Obtener nombre del remitente
+    let senderName = "Alguien";
+    try {
+        const senderDoc = await db.collection("users").doc(senderId).get();
+        senderName = senderDoc.data()?.name || "Alguien";
+    } catch (e) {
+        logger.warn("No se pudo obtener el nombre del remitente:", e);
+    }
+
+    const isImage = message.type === "image";
+
+const payload = {
+    data: {
+        title: `${senderName} te envió un mensaje`,
+        body: isImage ? "📷 Imagen enviada" : message.text || "Nuevo mensaje",
+        chatId: chatId,
+        jobId: chatData.jobId,
+        otherUserId: senderId, // El emisor es el otro usuario desde la perspectiva del receptor
+        ...(isImage && { imageUrl: message.text })
+    },
+    token: token
+};
+
 
     try {
         const response = await getMessaging().send(payload);
