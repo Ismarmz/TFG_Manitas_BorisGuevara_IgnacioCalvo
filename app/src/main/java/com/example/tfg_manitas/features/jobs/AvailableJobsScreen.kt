@@ -1,6 +1,7 @@
 package com.example.tfg_manitas.features.jobs
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,10 +37,13 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -107,10 +111,11 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Campo siempre visible
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Palabra clave") },
+                    label = { Text("Buscar trabajo") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = TextFieldDefaults.outlinedTextFieldColors(
                         focusedBorderColor = MaterialTheme.colorScheme.primary,
@@ -122,35 +127,68 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                OutlinedTextField(
-                    value = locationFilter,
-                    onValueChange = { locationFilter = it },
-                    label = { Text("Ubicación") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                        textColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary
+// Filtros colapsables
+                var showAdvancedFilters by remember { mutableStateOf(false) }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showAdvancedFilters = !showAdvancedFilters }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Más filtros",
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f)
                     )
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = minPaymentFilter,
-                    onValueChange = { minPaymentFilter = it },
-                    label = { Text("Pago mínimo (USD)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
-                        textColor = MaterialTheme.colorScheme.onBackground,
-                        cursorColor = MaterialTheme.colorScheme.primary
+                    Icon(
+                        imageVector = if (showAdvancedFilters) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
                     )
-                )
+                }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                AnimatedVisibility(visible = showAdvancedFilters) {
+                    Column {
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = locationFilter,
+                                onValueChange = { locationFilter = it },
+                                label = { Text("Ubicación") },
+                                modifier = Modifier.weight(1f),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                    textColor = MaterialTheme.colorScheme.onBackground,
+                                    cursorColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+
+                            OutlinedTextField(
+                                value = minPaymentFilter,
+                                onValueChange = { minPaymentFilter = it },
+                                label = { Text("Pago mínimo") },
+                                modifier = Modifier.weight(1f),
+                                colors = TextFieldDefaults.outlinedTextFieldColors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                                    textColor = MaterialTheme.colorScheme.onBackground,
+                                    cursorColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                }
+
 
                 Text("Etiquetas", style = MaterialTheme.typography.labelLarge)
                 Spacer(modifier = Modifier.height(6.dp))
