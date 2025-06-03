@@ -13,8 +13,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.tfg_manitas.data.repository.ChatRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.tasks.await
 @Composable
 fun ChatListScreen(
     navController: NavHostController,
@@ -41,6 +42,22 @@ fun ChatListScreen(
                 items(chats) { chat ->
                     val otherUserId = chat.userIds.firstOrNull { it != currentUserId } ?: return@items
 
+                    val jobTitle = remember { mutableStateOf("Cargando...") }
+
+                    LaunchedEffect(chat.jobId) {
+                        try {
+                            val jobSnapshot = FirebaseFirestore.getInstance()
+                                .collection("jobs")
+                                .document(chat.jobId)
+                                .get()
+                                .await()
+
+                            jobTitle.value = jobSnapshot.getString("title") ?: chat.jobId
+                        } catch (e: Exception) {
+                            jobTitle.value = "(Error al cargar título)"
+                        }
+                    }
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -51,11 +68,12 @@ fun ChatListScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Trabajo: ${chat.jobId}", style = MaterialTheme.typography.titleMedium)
+                            Text("Trabajo: ${jobTitle.value}", style = MaterialTheme.typography.titleMedium)
                             Text("Último mensaje: ${chat.lastMessage}")
                         }
                     }
                 }
+
             }
         }
     }

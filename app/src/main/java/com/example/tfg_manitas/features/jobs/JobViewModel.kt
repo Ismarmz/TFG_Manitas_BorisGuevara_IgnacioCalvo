@@ -214,6 +214,37 @@ class JobViewModel : ViewModel() {
         }
     }
 
+    fun shortlistWorker(jobId: String, workerId: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val jobRef = db.collection("jobs").document(jobId)
+
+                db.runTransaction { transaction ->
+                    val snapshot = transaction.get(jobRef)
+                    val currentList = snapshot.get("shortlistedWorkerIds") as? List<String> ?: emptyList()
+
+                    if (!currentList.contains(workerId)) {
+                        val updatedList = currentList + workerId
+                        transaction.update(jobRef, "shortlistedWorkerIds", updatedList)
+                    }
+                }.await()
+
+                // Crear chat al preseleccionar
+                val currentUserId = auth.currentUser?.uid
+                if (currentUserId != null) {
+                    val chatRepo = ChatRepository()
+                    chatRepo.getOrCreateChat(jobId, listOf(currentUserId, workerId))
+                }
+
+                onSuccess()
+            } catch (e: Exception) {
+                onFailure(e.message ?: "Error al preseleccionar")
+            }
+        }
+    }
+
+
+
 
     fun refreshJobs() {
         listenToAllJobs()

@@ -113,6 +113,9 @@ fun PublishTabScreen(navController: NavHostController) {
                                             applicantName = res.getOrNull()?.name ?: "Usuario"
                                         }
 
+                                        val isPreselected = job.shortlistedWorkerIds.contains(applicantId)
+                                        val isFinal = job.selectedWorkerId == applicantId
+
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -126,26 +129,53 @@ fun PublishTabScreen(navController: NavHostController) {
                                                 Text(applicantName ?: "Cargando...")
                                             }
 
-                                            Button(
-                                                onClick = {
-                                                    coroutineScope.launch {
-                                                        jobViewModel.selectWorkerAndCreateChat(
-                                                            jobId = job.id,
-                                                            workerId = applicantId,
-                                                            onSuccess = {
-                                                                Toast.makeText(context, "Trabajador asignado", Toast.LENGTH_SHORT).show()
-                                                                jobViewModel.refreshJobs()
-                                                            },
-                                                            onFailure = { error ->
-                                                                Toast.makeText(context, "Error al asignar: $error", Toast.LENGTH_SHORT).show()
+                                            Row {
+                                                if (!isFinal) {
+                                                    Button(
+                                                        onClick = {
+                                                            coroutineScope.launch {
+                                                                jobViewModel.shortlistWorker(
+                                                                    jobId = job.id,
+                                                                    workerId = applicantId,
+                                                                    onSuccess = {
+                                                                        Toast.makeText(context, "Preseleccionado y chat abierto", Toast.LENGTH_SHORT).show()
+                                                                        navController.navigate("chat/${job.id}/$applicantId")
+                                                                        jobViewModel.refreshJobs()
+                                                                    },
+                                                                    onFailure = { error ->
+                                                                        Toast.makeText(context, "Error: $error", Toast.LENGTH_SHORT).show()
+                                                                    }
+                                                                )
                                                             }
-                                                        )
-
+                                                        },
+                                                        enabled = !isPreselected
+                                                    ) {
+                                                        Text(if (isPreselected) "Chatear" else "Preseleccionar y chatear")
                                                     }
-                                                },
-                                                enabled = job.selectedWorkerId == null
-                                            ) {
-                                                Text("Seleccionar")
+                                                }
+
+                                                Spacer(modifier = Modifier.width(8.dp))
+
+                                                Button(
+                                                    onClick = {
+                                                        coroutineScope.launch {
+                                                            jobViewModel.selectWorkerAndCreateChat(
+                                                                jobId = job.id,
+                                                                workerId = applicantId,
+                                                                onSuccess = {
+                                                                    Toast.makeText(context, "Trabajador asignado", Toast.LENGTH_SHORT).show()
+                                                                    jobViewModel.refreshJobs()
+                                                                },
+                                                                onFailure = { error ->
+                                                                    Toast.makeText(context, "Error: $error", Toast.LENGTH_SHORT).show()
+                                                                }
+                                                            )
+                                                        }
+                                                    },
+                                                    enabled = job.selectedWorkerId == null
+                                                ) {
+                                                    Text("Asignar")
+                                                }
                                             }
                                         }
                                     }

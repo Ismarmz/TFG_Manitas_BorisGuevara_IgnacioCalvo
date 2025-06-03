@@ -15,6 +15,7 @@ data class Job(
     @get:PropertyName("isCompleted") @set:PropertyName("isCompleted")
     var isCompleted: Boolean = false,
     val applicants: List<String> = listOf(),
+    val shortlistedWorkerIds: List<String> = listOf(),
     val selectedWorkerId: String? = null
 )
 

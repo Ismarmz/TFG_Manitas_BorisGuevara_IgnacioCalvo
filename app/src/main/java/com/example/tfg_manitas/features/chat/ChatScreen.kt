@@ -90,11 +90,8 @@ fun ChatScreen(
         }
     )
 
-    // Back handler para volver a Main
     BackHandler {
-        navController.navigate("Main") {
-            popUpTo("Main") { inclusive = true }
-        }
+        navController.popBackStack()
     }
 
     LaunchedEffect(otherUserId) {

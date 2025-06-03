@@ -12,38 +12,38 @@ class ChatRepository(
 ) {
     private val chatsCol = db.collection("chats")
 
-    // Crear chat si no existe
+    // Genera un ID único y predecible para el chat
+    private fun generateChatId(jobId: String, userIds: List<String>): String {
+        val sortedIds = userIds.sorted()
+        return "${jobId}_${sortedIds[0]}_${sortedIds[1]}"
+    }
+
     suspend fun getOrCreateChat(jobId: String, userIds: List<String>): Result<Chat> {
-
-        if (userIds.toSet().size < 2) {
-            return Result.failure(Exception("No se puede crear un chat contigo mismo"))
-        }
-
+        val db = FirebaseFirestore.getInstance()
+        val sortedUserIds = userIds.sorted()
+        val chatId = generateChatId(jobId, sortedUserIds)
+        val docRef = db.collection("chats").document(chatId)
 
         return try {
-            val query = chatsCol
-                .whereEqualTo("jobId", jobId)
-                .whereEqualTo("userIds", userIds.sorted()) // asegurar orden
-                .get()
-                .await()
+            val snapshot = docRef.get().await()
 
-            if (!query.isEmpty) {
-                val doc = query.documents.first()
-                Result.success(doc.toObject(Chat::class.java)!!.copy(id = doc.id))
+            if (snapshot.exists()) {
+                val chat = snapshot.toObject(Chat::class.java)!!.copy(id = chatId)
+                Result.success(chat)
             } else {
-                val doc = chatsCol.document()
                 val newChat = Chat(
-                    id = doc.id,
+                    id = chatId,
                     jobId = jobId,
-                    userIds = userIds.sorted()
+                    userIds = sortedUserIds
                 )
-                doc.set(newChat).await()
+                docRef.set(newChat).await()
                 Result.success(newChat)
             }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 
     // Escuchar mensajes en tiempo real
     fun listenToMessages(chatId: String) = callbackFlow<List<Message>> {

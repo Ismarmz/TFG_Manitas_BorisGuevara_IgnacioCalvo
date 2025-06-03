@@ -88,7 +88,7 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
             }
         }
 
-        // 🆕 Pantalla de reseñas
+        // Pantalla de reseñas
         composable(
             route = "review/{jobId}/{toUserId}",
             arguments = listOf(

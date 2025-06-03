@@ -15,12 +15,10 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CardDefaults
 import androidx.navigation.NavHostController
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -28,10 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.tfg_manitas.ui.theme.VerdeExito
 import androidx.compose.ui.unit.sp
 import com.example.tfg_manitas.features.profile.User
-import androidx.compose.ui.text.input.KeyboardType
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -54,6 +50,7 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
     val selectedTags = remember { mutableStateListOf<String>() }
 
     val filteredJobs = allJobs.filter { job ->
+        val notAssigned = job.selectedWorkerId == null
         val matchesKeyword = searchQuery.isBlank() ||
                 job.title.contains(searchQuery, ignoreCase = true) ||
                 job.description.contains(searchQuery, ignoreCase = true)
@@ -70,7 +67,7 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
             it >= minValue
         } ?: false
 
-        matchesKeyword && matchesTags && matchesLocation && matchesPayment
+        notAssigned && matchesKeyword && matchesTags && matchesLocation && matchesPayment
     }
 
     Column(

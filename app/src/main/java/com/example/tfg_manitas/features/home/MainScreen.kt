@@ -110,12 +110,6 @@ fun MainScreen(rootNavController: NavHostController) {
                         navController = rootNavController
                     )
                 }
-                composable("jobs") {
-                    JobsListScreen(
-                        jobViewModel = viewModel(),
-                        navController = rootNavController
-                    )
-                }
                 composable("profile") {
                     ProfileScreen(onLogout = {
                         rootNavController.navigate("login") {
