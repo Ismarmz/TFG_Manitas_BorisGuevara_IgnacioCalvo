@@ -1,6 +1,7 @@
 package com.example.tfg_manitas.features.auth
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -11,9 +12,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.tfg_manitas.R
 import com.example.tfg_manitas.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +46,13 @@ fun LoginScreen(navController: NavHostController) {
             modifier = Modifier.fillMaxWidth(0.9f),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_negro),
+                contentDescription = "Logo de la app",
+                modifier = Modifier
+                    .height(200.dp)
+                    .padding(bottom = 16.dp)
+            )
             Text(
                 text = "Iniciar Sesión",
                 style = MaterialTheme.typography.headlineMedium,

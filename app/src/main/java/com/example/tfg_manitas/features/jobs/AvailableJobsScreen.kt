@@ -33,7 +33,6 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChipDefaults
-
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.animation.animateContentSize
@@ -44,7 +43,6 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -66,22 +64,25 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
     val selectedTags = remember { mutableStateListOf<String>() }
 
     val filteredJobs = allJobs.filter { job ->
-        val notAssigned = job.selectedWorkerId == null
-        val matchesKeyword = searchQuery.isBlank() ||
-                job.title.contains(searchQuery, ignoreCase = true) ||
-                job.description.contains(searchQuery, ignoreCase = true)
-
-        val matchesTags = selectedTags.isEmpty() || selectedTags.any {
-            job.tags.any { tag -> tag.equals(it, ignoreCase = true) }
-        }
-
-        val matchesLocation = locationFilter.isBlank() ||
-                job.location.contains(locationFilter, ignoreCase = true)
-
+        val cleanedQuery = searchQuery.trim().lowercase()
         val minValue = minPaymentFilter.toDoubleOrNull()
+
+        val matchesKeyword = cleanedQuery.isEmpty() ||
+                job.title.lowercase().contains(cleanedQuery) ||
+                job.description.lowercase().contains(cleanedQuery)
+
+        val matchesLocation = locationFilter.trim().isEmpty() ||
+                job.location.lowercase().contains(locationFilter.trim().lowercase())
+
         val matchesPayment = minValue == null || job.paymentAmount.toDoubleOrNull()?.let {
             it >= minValue
         } ?: false
+
+        val matchesTags = selectedTags.isEmpty() || selectedTags.any { tag ->
+            job.tags.any { it.equals(tag, ignoreCase = true) }
+        }
+
+        val notAssigned = job.selectedWorkerId == null
 
         notAssigned && matchesKeyword && matchesTags && matchesLocation && matchesPayment
     }
