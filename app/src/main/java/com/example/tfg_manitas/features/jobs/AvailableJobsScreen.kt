@@ -28,6 +28,18 @@ import androidx.compose.ui.unit.sp
 import com.example.tfg_manitas.features.profile.User
 import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.material3.FilterChip
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChipDefaults
+
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.Text
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ChevronLeft
+import androidx.compose.material.icons.filled.ChevronRight
 
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -76,56 +88,124 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
             .background(MaterialTheme.colorScheme.background)
             .padding(16.dp)
     ) {
-        Text("Buscar Trabajos", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text("Palabra clave") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = locationFilter,
-            onValueChange = { locationFilter = it },
-            label = { Text("Ubicación") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = minPaymentFilter,
-            onValueChange = { minPaymentFilter = it },
-            label = { Text("Pago mínimo (USD)") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text("Etiquetas", style = MaterialTheme.typography.labelLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-
-        FlowRow(mainAxisSpacing = 8.dp, crossAxisSpacing = 8.dp) {
-            tagOptions.forEach { tag ->
-                val selected = selectedTags.contains(tag)
-                FilterChip(
-                    selected = selected,
-                    onClick = {
-                        if (selected) selectedTags.remove(tag)
-                        else selectedTags.add(tag)
-                    },
-                    label = { Text(tag) }
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "Buscar Trabajos",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    label = { Text("Palabra clave") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                        textColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = locationFilter,
+                    onValueChange = { locationFilter = it },
+                    label = { Text("Ubicación") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                        textColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = minPaymentFilter,
+                    onValueChange = { minPaymentFilter = it },
+                    label = { Text("Pago mínimo (USD)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.secondary,
+                        textColor = MaterialTheme.colorScheme.onBackground,
+                        cursorColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Etiquetas", style = MaterialTheme.typography.labelLarge)
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ChevronLeft,
+                        contentDescription = "Scroll left",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(tagOptions) { tag ->
+                            val selected = selectedTags.contains(tag)
+                            FilterChip(
+                                selected = selected,
+                                onClick = {
+                                    if (selected) selectedTags.remove(tag)
+                                    else selectedTags.add(tag)
+                                },
+                                label = { Text(tag) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onSecondary,
+                                    disabledContainerColor = MaterialTheme.colorScheme.surface
+                                )
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = "Scroll right",
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    )
+                }
+
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
-
+        Spacer(modifier = Modifier.height(16.dp)) // menor espaciado antes de resultados
         Button(
             onClick = {
                 searchQuery = ""
@@ -133,7 +213,11 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
                 minPaymentFilter = ""
                 selectedTags.clear()
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            )
         ) {
             Text("Limpiar filtros")
         }
@@ -179,7 +263,8 @@ fun JobCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .animateContentSize(), // <--- aplicar animación aquí
         shape = MaterialTheme.shapes.large,
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
@@ -193,7 +278,14 @@ fun JobCard(
             )
 
             Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                Text(job.title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = job.title,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = MaterialTheme.colorScheme.primary
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = job.tags.joinToString(", "),
@@ -206,23 +298,35 @@ fun JobCard(
                 Text(job.description, maxLines = 2, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(6.dp))
                 val creatorName = userMap[job.userId]?.name ?: "Usuario desconocido"
-                TextButton(onClick = { navController.navigate("publicProfile/${job.userId}") }) {
-                    Text("Publicado por: $creatorName", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                TextButton(
+                    onClick = { navController.navigate("publicProfile/${job.userId}") },
+                    colors = androidx.compose.material3.ButtonDefaults.textButtonColors(
+                        contentColor = MaterialTheme.colorScheme.secondary
+                    )
+                ) {
+                    Text("Publicado por: $creatorName")
                 }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (job.userId != userId && !job.applicants.contains(userId)) {
-                    Button(onClick = {
-                        coroutineScope.launch {
-                            val result = jobViewModel.applyToJob(job.id, userId!!)
-                            if (result.isSuccess) {
-                                Toast.makeText(context, "Te has postulado con éxito", Toast.LENGTH_SHORT).show()
-                                jobViewModel.refreshJobs()
-                            } else {
-                                Toast.makeText(context, "Error: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                val result = jobViewModel.applyToJob(job.id, userId!!)
+                                if (result.isSuccess) {
+                                    Toast.makeText(context, "Te has postulado con éxito", Toast.LENGTH_SHORT).show()
+                                    jobViewModel.refreshJobs()
+                                } else {
+                                    Toast.makeText(context, "Error: ${result.exceptionOrNull()?.message}", Toast.LENGTH_LONG).show()
+                                }
                             }
-                        }
-                    }, modifier = Modifier.fillMaxWidth()) {
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
                         Text("Postularme")
                     }
                 } else if (job.applicants.contains(userId)) {
