@@ -1,21 +1,23 @@
 package com.example.tfg_manitas.features.jobs
 
+import com.google.firebase.firestore.PropertyName
+
 data class Job(
     val id: String = "",
     val title: String = "",
     val description: String = "",
-    val category: String = "",
+    val tags: List<String> = emptyList(),
     val location: String = "",
     val dateTime: String = "",
+    val paymentAmount: String = "",
     val timestamp: Long = System.currentTimeMillis(),
     val userId: String = "",
-    @com.google.firebase.firestore.PropertyName("isCompleted")
-    @get:com.google.firebase.firestore.PropertyName("isCompleted")
-    val isCompleted: Boolean = false,
-
-
+    @get:PropertyName("isCompleted") @set:PropertyName("isCompleted")
+    var isCompleted: Boolean = false,
     val applicants: List<String> = listOf(),
     val selectedWorkerId: String? = null
 )
+
+
 
 

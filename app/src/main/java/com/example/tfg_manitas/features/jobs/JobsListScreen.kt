@@ -57,6 +57,7 @@ fun JobsListScreen(
                                 Text(text = job.title, style = MaterialTheme.typography.h6)
                                 Text("📍 ${job.location}")
                                 Text("🕒 ${job.dateTime}")
+                                Text("💰 ${job.paymentAmount}")
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(text = job.description)
 

@@ -30,7 +30,6 @@ fun PostJobScreen(
             JobForm(
 
                 initialJob = null,
-                key = formResetKey,
                 submitLabel = "Publicar Trabajo",
                 isLoading = isLoading,
                 snackbarHostState = snackbarHostState,
@@ -38,9 +37,10 @@ fun PostJobScreen(
                     jobViewModel.postJob(
                         title = job.title,
                         description = job.description,
-                        category = job.category,
+                        tags = job.tags,
                         location = job.location,
                         dateTime = job.dateTime,
+                        paymentAmount = job.paymentAmount,
                         onSuccess = {
                             snackbarMessage = "Trabajo publicado"
                             formResetKey++

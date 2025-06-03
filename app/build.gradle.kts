@@ -76,6 +76,13 @@ dependencies {
     implementation(libs.google.firebase.storage.ktx)
     implementation(libs.google.firebase.messaging.ktx)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.materialdialogs.core)
+    implementation(libs.materialdialogs.datetime)
+    implementation(libs.androidx.foundation.layout)
+    implementation(libs.androidx.ui.text)
+    implementation(libs.accompanist.flowlayout)
+    implementation(libs.androidx.compose.material)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

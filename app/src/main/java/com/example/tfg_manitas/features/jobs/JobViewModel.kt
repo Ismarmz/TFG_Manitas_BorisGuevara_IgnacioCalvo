@@ -44,26 +44,31 @@ class JobViewModel : ViewModel() {
     fun postJob(
         title: String,
         description: String,
-        category: String,
+        tags: List<String>,
         location: String,
         dateTime: String,
+        paymentAmount: String,
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
-    ) {
+    )
+ {
         val currentUser = auth.currentUser
         if (currentUser == null) {
             onFailure("Usuario no autenticado")
             return
         }
 
-        val job = Job(
-            title = title,
-            description = description,
-            category = category,
-            location = location,
-            dateTime = dateTime,
-            userId = currentUser.uid
-        )
+     val job = Job(
+         title = title,
+         description = description,
+         tags = tags,
+         location = location,
+         dateTime = dateTime,
+         paymentAmount = paymentAmount,
+         userId = currentUser.uid
+     )
+
+
 
         viewModelScope.launch {
             db.collection("jobs")

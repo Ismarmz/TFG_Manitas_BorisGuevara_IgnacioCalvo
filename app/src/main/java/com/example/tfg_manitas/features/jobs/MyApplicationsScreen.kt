@@ -67,7 +67,7 @@ fun MyApplicationsScreen(
                         else -> "⏳ En espera de decisión"
                     }
 
-                    val categoriaColor = colorPorCategoria(job.category)
+                    val categoriaColor = colorPorCategoria(job.tags.firstOrNull() ?: "")
 
                     Card(
                         modifier = Modifier
@@ -103,7 +103,7 @@ fun MyApplicationsScreen(
                                         .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
                                     Text(
-                                        text = job.category,
+                                        text = job.tags.joinToString(", "),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = MaterialTheme.colorScheme.secondary
                                     )

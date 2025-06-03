@@ -1,5 +1,7 @@
 package com.example.tfg_manitas.features.profile
 
+
+
 data class User(
     val uid: String = "",
     val email: String = "",
