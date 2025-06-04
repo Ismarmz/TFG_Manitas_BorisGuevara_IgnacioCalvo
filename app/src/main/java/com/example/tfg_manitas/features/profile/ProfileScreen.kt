@@ -234,7 +234,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
                     }
 
                     Column(Modifier.padding(horizontal = 16.dp)) {
-                        Text("Reputación", style = MaterialTheme.typography.h6)
+
 
                         Spacer(modifier = Modifier.height(8.dp))
 

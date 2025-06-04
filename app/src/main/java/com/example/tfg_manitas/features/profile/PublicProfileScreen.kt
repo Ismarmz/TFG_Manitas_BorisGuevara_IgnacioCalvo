@@ -1,14 +1,16 @@
 package com.example.tfg_manitas.features.profile
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -49,69 +51,168 @@ fun PublicProfileScreen(
             Text("Usuario no encontrado")
         }
     } else {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 80.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(Color(0xFFFFF8F0)) // Fondo crema
         ) {
-            // Imagen de perfil
-            Image(
-                painter = painterResource(id = R.drawable.profile),
-                contentDescription = "Foto de perfil",
+            Column(
                 modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+                    .fillMaxSize()
+                    .padding(top = 80.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.profile),
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = user!!.name.ifBlank { "Sin nombre" },
-                style = MaterialTheme.typography.h6,
-                textAlign = TextAlign.Center
-            )
+                Text(
+                    text = user!!.name.ifBlank { "Sin nombre" },
+                    style = MaterialTheme.typography.h6,
+                    textAlign = TextAlign.Center
+                )
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                text = user!!.description.ifBlank { "Sin descripción" },
-                style = MaterialTheme.typography.body2,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 24.dp)
-            )
+                Text(
+                    text = user!!.description.ifBlank { "Sin descripción" },
+                    style = MaterialTheme.typography.body2,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Resumen de reputación
-            if (!isReviewsLoading) {
-                val totalReseñas = reviews.size
-                val promedio = if (totalReseñas > 0) {
-                    reviews.map { it.rating }.average()
-                } else 0.0
+                if (!isReviewsLoading) {
+                    val totalReseñas = reviews.size
+                    val promedio = if (totalReseñas > 0) {
+                        reviews.map { it.rating }.average()
+                    } else 0.0
 
-                val etiqueta = when {
-                    promedio >= 4.5 -> "Excelente reputación"
-                    promedio >= 3.5 -> "Buena reputación"
-                    promedio >= 2.5 -> "Reputación media"
-                    promedio > 0 -> "Reputación baja"
-                    else -> "Sin valoraciones aún"
+                    val etiqueta = when {
+                        promedio >= 4.5 -> "Reputación Excelente"
+                        promedio >= 3.5 -> "Reputación Buena"
+                        promedio >= 2.5 -> "Reputación Media"
+                        promedio > 0 -> "Reputación Baja"
+                        else -> "Sin valoraciones aún"
+                    }
+
+                    val etiquetaColor = when {
+                        promedio >= 4.5 -> Color(0xFF10B981)
+                        promedio >= 3.5 -> Color(0xFF6EE7B7)
+                        promedio >= 2.5 -> Color(0xFFFBBF24)
+                        promedio > 0 -> Color(0xFFF87171)
+                        else -> Color.Gray
+                    }
+
+                    Column(Modifier.padding(horizontal = 16.dp)) {
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 4.dp)
+                            ) {
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = 0.dp,
+                                    backgroundColor = Color(0xFFFFF8F0),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("⭐ ${"%.1f".format(promedio)}")
+                                    }
+                                }
+                            }
+
+                            Divider(
+                                color = Color.Gray.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .width(1.dp)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 4.dp)
+                            ) {
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = 0.dp,
+                                    backgroundColor = Color(0xFFFFF8F0),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("🗂 Reseñas: $totalReseñas")
+                                    }
+                                }
+                            }
+
+                            Divider(
+                                color = Color.Gray.copy(alpha = 0.5f),
+                                modifier = Modifier
+                                    .height(40.dp)
+                                    .width(1.dp)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 4.dp)
+                            ) {
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    elevation = 0.dp,
+                                    backgroundColor = Color(0xFFFFF8F0),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(12.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(
+                                                text = "📊 Reputación:",
+                                                color = Color.Black,
+                                                textAlign = TextAlign.Center
+                                            )
+                                            Text(
+                                                text = etiqueta.replace("Reputación ", "").replace("reputación ", ""),
+                                                color = etiquetaColor,
+                                                style = MaterialTheme.typography.body2,
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
 
-                Column(Modifier.padding(16.dp)) {
-                    Text("Reputación", style = MaterialTheme.typography.h6)
-                    Spacer(Modifier.height(4.dp))
-                    Text("⭐ Promedio: ${"%.1f".format(promedio)} de 5.0")
-                    Text("🗂 Total de reseñas: $totalReseñas")
-                    Text("📊 $etiqueta")
-                }
+                Spacer(modifier = Modifier.height(16.dp))
+
+                UserReviewsSection(userId = user!!.uid)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sección de reseñas con trabajos
-            UserReviewsSection(userId = user!!.uid)
         }
     }
 }
