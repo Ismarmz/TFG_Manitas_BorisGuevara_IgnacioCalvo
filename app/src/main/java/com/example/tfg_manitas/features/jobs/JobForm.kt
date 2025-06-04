@@ -2,15 +2,24 @@ package com.example.tfg_manitas.features.jobs
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.SnackbarHostState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.vanpra.composematerialdialogs.*
+import androidx.compose.ui.unit.sp
+import com.google.accompanist.flowlayout.FlowRow
+import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.datetime.time.timepicker
-import com.google.accompanist.flowlayout.FlowRow
+import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -32,6 +41,7 @@ fun JobForm(
     var location by remember { mutableStateOf(TextFieldValue(initialJob?.location ?: "")) }
     var paymentAmount by remember { mutableStateOf(TextFieldValue(initialJob?.paymentAmount ?: "")) }
 
+    var paymentSlider by remember { mutableFloatStateOf(initialJob?.paymentAmount?.toFloatOrNull() ?: 50f) }
     val dateDialogState = rememberMaterialDialogState()
     val timeDialogState = rememberMaterialDialogState()
 
@@ -61,6 +71,31 @@ fun JobForm(
     var dateTimeError by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            IconButton(onClick = { /* navController.popBackStack() */ }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color(0xFF2F4C5A)
+                )
+            }
+            Text(
+                text = "Formulario de trabajo",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(0xFF2F4C5A),
+                modifier = Modifier.weight(1f),
+                maxLines = 1
+            )
+            Spacer(modifier = Modifier.width(48.dp))
+        }
+
         OutlinedTextField(
             value = title,
             onValueChange = {
@@ -73,19 +108,21 @@ fun JobForm(
         )
         titleError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
+        Spacer(Modifier.height(8.dp))
         OutlinedTextField(
             value = description,
             onValueChange = {
                 description = it
                 descriptionError = null
             },
-            label = { Text("Descripción") },
+            label = { Text("Descripción detallada") },
             isError = descriptionError != null,
             modifier = Modifier.fillMaxWidth()
         )
         descriptionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
-        Text("Selecciona etiquetas:", style = MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(16.dp))
+        Text("Etiquetas del trabajo", style = MaterialTheme.typography.labelLarge)
         FlowRow(mainAxisSpacing = 8.dp, crossAxisSpacing = 8.dp) {
             allTags.forEach { tag ->
                 val isSelected = selectedTags.contains(tag)
@@ -95,23 +132,19 @@ fun JobForm(
                         tagsError = null
                         if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
                     },
-                    label = { Text(tag) }
+                    label = { Text(tag) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Color(0xFFF4A950),
+                        selectedLabelColor = Color(0xFF2F4C5A),
+                        disabledContainerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
             }
         }
         tagsError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
-        OutlinedTextField(
-            value = paymentAmount,
-            onValueChange = {
-                paymentAmount = it
-                paymentError = null
-            },
-            label = { Text("Remuneración (USD)") },
-            isError = paymentError != null,
-            modifier = Modifier.fillMaxWidth()
-        )
-        paymentError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        Spacer(Modifier.height(16.dp))
+        Text("Ubicación y Pago", style = MaterialTheme.typography.labelLarge)
 
         OutlinedTextField(
             value = location,
@@ -125,14 +158,75 @@ fun JobForm(
         )
         locationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
+        Spacer(Modifier.height(8.dp))
+        Text("Remuneración", style = MaterialTheme.typography.labelLarge)
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = { dateDialogState.show() }, modifier = Modifier.fillMaxWidth()) {
-            Text(if (formattedDate.isNotBlank()) "🗓 $formattedDate" else "Seleccionar fecha")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("0 USD", fontSize = 12.sp, color = Color.Gray)
+            Text("250 USD", fontSize = 12.sp, color = Color.Gray)
         }
 
-        Button(onClick = { timeDialogState.show() }, modifier = Modifier.fillMaxWidth()) {
-            Text(if (formattedTime.isNotBlank()) "🕒 $formattedTime" else "Seleccionar hora")
+            Slider(
+                value = paymentSlider,
+                onValueChange = {
+                    paymentSlider = it
+                    paymentError = null
+                },
+                valueRange = 0f..250f,
+                modifier = Modifier.fillMaxWidth(),
+                colors = SliderDefaults.colors(
+                    thumbColor = Color(0xFFF4A950),
+                    activeTrackColor = Color(0xFF2F4C5A),
+                    inactiveTrackColor = Color.LightGray
+                )
+            )
+
+            Text(
+                text = "${paymentSlider.toInt()} USD seleccionados",
+                fontSize = 14.sp,
+                color = Color(0xFF2F4C5A),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+        paymentError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Fecha y Hora", style = MaterialTheme.typography.labelLarge)
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { dateDialogState.show() },
+                modifier = Modifier.padding(horizontal = 40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.DateRange,
+                    contentDescription = "Fecha",
+                    tint = Color(0xFF2F4C5A),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            IconButton(
+                onClick = { timeDialogState.show() },
+                modifier = Modifier.padding(horizontal = 40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    contentDescription = "Hora",
+                    tint = Color(0xFF2F4C5A),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
 
         dateTimeError?.let {
@@ -142,19 +236,21 @@ fun JobForm(
         MaterialDialog(dateDialogState, buttons = {
             positiveButton("Aceptar")
             negativeButton("Cancelar")
-        }) { datepicker { pickedDate = it } }
+        }) {
+            datepicker { pickedDate = it }
+        }
 
         MaterialDialog(timeDialogState, buttons = {
             positiveButton("Aceptar")
             negativeButton("Cancelar")
-        }) { timepicker(is24HourClock = true) { pickedTime = it } }
+        }) {
+            timepicker(is24HourClock = true) { pickedTime = it }
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
+        Spacer(Modifier.height(24.dp))
         Button(
             onClick = {
                 var valid = true
-
                 if (title.text.length < 5) {
                     titleError = "El título debe tener al menos 5 caracteres"
                     valid = false
@@ -167,8 +263,8 @@ fun JobForm(
                     locationError = "Ubicación obligatoria"
                     valid = false
                 }
-                if (paymentAmount.text.toDoubleOrNull()?.let { it > 0 } != true) {
-                    paymentError = "Remuneración inválida"
+                if (paymentSlider <= 0f) {
+                    paymentError = "La remuneración debe ser mayor a 0"
                     valid = false
                 }
                 if (selectedTags.isEmpty()) {
@@ -188,15 +284,19 @@ fun JobForm(
                     tags = selectedTags.toList(),
                     location = location.text,
                     dateTime = combinedDateTime,
-                    paymentAmount = paymentAmount.text
+                    paymentAmount = paymentSlider.toInt().toString()
                 )
                 onSubmit(job)
             },
             enabled = !isLoading,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFF4A950),
+                contentColor = Color(0xFF2F4C5A)
+            )
         ) {
             if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
-            else Text(submitLabel)
+            else Text(submitLabel, fontSize = 14.sp)
         }
     }
 }

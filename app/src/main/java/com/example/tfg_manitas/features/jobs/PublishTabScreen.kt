@@ -194,7 +194,7 @@ fun PublishTabScreen(navController: NavHostController) {
                                                             modifier = Modifier.weight(1f),
                                                             colors = ButtonDefaults.buttonColors(
                                                                 backgroundColor = Color(0xFFF4A950),
-                                                                contentColor = Color.White
+                                                                contentColor = Color(0xFF2F4C5A)
                                                             ),
                                                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                                         ) {
@@ -222,7 +222,7 @@ fun PublishTabScreen(navController: NavHostController) {
                                                         modifier = Modifier.weight(1f),
                                                         colors = ButtonDefaults.buttonColors(
                                                             backgroundColor = Color(0xFFF4A950),
-                                                            contentColor = Color.White
+                                                            contentColor = Color(0xFF2F4C5A)
                                                         ),
                                                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                                                     ) {
