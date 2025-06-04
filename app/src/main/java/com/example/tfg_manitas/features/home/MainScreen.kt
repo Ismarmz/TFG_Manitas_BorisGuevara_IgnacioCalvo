@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -28,6 +29,8 @@ import com.example.tfg_manitas.features.reviews.ReviewScreen
 import com.example.tfg_manitas.features.chat.ChatListScreen
 import com.example.tfg_manitas.features.chat.Chat
 import com.google.firebase.auth.FirebaseAuth
+
+
 
 @Composable
 fun AppNavigation(navController: NavHostController, startDestination: String) {
@@ -70,12 +73,18 @@ fun MainScreen(rootNavController: NavHostController) {
         BottomNavItem("Perfil", "profile", Icons.Default.Person)
     )
 
+    val azulGrafito = Color(0xFF2F4C5A)
 
     Scaffold(
         bottomBar = {
-            BottomNavigation(elevation = 8.dp) {
+            BottomNavigation(
+                backgroundColor = Color(0xFFFFF8F0), // fondo crema si lo deseas
+                elevation = 0.dp
+            ) {
                 val backEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backEntry?.destination?.route
+                val azulGrafito = Color(0xFF2F4C5A)
+
                 items.forEach { item ->
                     BottomNavigationItem(
                         icon = { Icon(item.icon, contentDescription = item.label) },
@@ -89,7 +98,9 @@ fun MainScreen(rootNavController: NavHostController) {
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
+                        selectedContentColor = azulGrafito,
+                        unselectedContentColor = azulGrafito.copy(alpha = 0.5f)
                     )
                 }
             }
@@ -123,7 +134,6 @@ fun MainScreen(rootNavController: NavHostController) {
                 composable("chatList") {
                     ChatListScreen(navController = rootNavController)
                 }
-
             }
         }
     }
