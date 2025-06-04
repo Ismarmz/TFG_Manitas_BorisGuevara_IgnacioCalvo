@@ -2,23 +2,16 @@ package com.example.tfg_manitas.features.reviews
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.tfg_manitas.features.reviews.Review
 import com.example.tfg_manitas.data.repository.ReviewRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun ReviewScreen(
@@ -28,7 +21,8 @@ fun ReviewScreen(
     reviewRepo: ReviewRepository = ReviewRepository()
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()           // <— scope para lanzar coroutines
+    val scope = rememberCoroutineScope()
+
     var rating by remember { mutableStateOf(3f) }
     var comment by remember { mutableStateOf("") }
     var isSubmitting by remember { mutableStateOf(false) }
@@ -55,7 +49,7 @@ fun ReviewScreen(
         OutlinedTextField(
             value = comment,
             onValueChange = { comment = it },
-            label = { Text("Comentario (opcional)") },
+            label = { Text("Comentario") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(Modifier.height(24.dp))
@@ -65,18 +59,20 @@ fun ReviewScreen(
             Spacer(Modifier.height(8.dp))
         }
 
-        LaunchedEffect(Unit) {
-            println("📝 ReviewScreen abierto para toUserId = $toUserId y jobId = $jobId")
-        }
-
         Button(
             onClick = {
-                println("📤 Intentando enviar reseña a: $toUserId con rating = $rating y comentario = '$comment'")
                 val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+
                 if (toUserId == currentUid) {
                     errorMsg = "No puedes valorarte a ti mismo"
                     return@Button
                 }
+
+                if (rating.toInt() == 0 || comment.isBlank()) {
+                    errorMsg = "Por favor completa la puntuación y deja un comentario"
+                    return@Button
+                }
+
                 isSubmitting = true
                 errorMsg = null
 
@@ -100,11 +96,9 @@ fun ReviewScreen(
                     isSubmitting = false
 
                     if (res.isSuccess) {
-                        println("✅ Reseña enviada correctamente a $toUserId")
                         Toast.makeText(context, "Reseña enviada", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } else {
-                        println("❌ Error al enviar reseña: ${res.exceptionOrNull()?.message}")
                         errorMsg = "Error al enviar reseña"
                     }
                 }

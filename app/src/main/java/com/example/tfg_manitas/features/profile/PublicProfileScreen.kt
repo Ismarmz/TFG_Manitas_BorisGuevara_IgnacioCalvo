@@ -1,25 +1,23 @@
 package com.example.tfg_manitas.features.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.tfg_manitas.data.repository.ReviewRepository
-import com.example.tfg_manitas.data.repository.UserRepository
-import com.example.tfg_manitas.features.reviews.Review
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.tfg_manitas.R
-
+import com.example.tfg_manitas.data.repository.ReviewRepository
+import com.example.tfg_manitas.data.repository.UserRepository
+import com.example.tfg_manitas.features.reviews.Review
 
 @Composable
 fun PublicProfileScreen(
@@ -32,18 +30,13 @@ fun PublicProfileScreen(
     var reviews by remember { mutableStateOf<List<Review>>(emptyList()) }
     var isReviewsLoading by remember { mutableStateOf(true) }
 
-    // Cargar usuario y reseñas
     LaunchedEffect(userId) {
         val userResult = UserRepository().getUserById(userId)
-        userResult.onSuccess {
-            user = it
-        }
+        userResult.onSuccess { user = it }
         isUserLoading = false
 
         val reviewResult = reviewRepo.getReviewsForUser(userId)
-        reviewResult.onSuccess {
-            reviews = it
-        }
+        reviewResult.onSuccess { reviews = it }
         isReviewsLoading = false
     }
 
@@ -62,7 +55,7 @@ fun PublicProfileScreen(
                 .padding(top = 80.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Imagen de perfil por defecto
+            // Imagen de perfil
             Image(
                 painter = painterResource(id = R.drawable.profile),
                 contentDescription = "Foto de perfil",
@@ -74,7 +67,6 @@ fun PublicProfileScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Nombre
             Text(
                 text = user!!.name.ifBlank { "Sin nombre" },
                 style = MaterialTheme.typography.h6,
@@ -83,7 +75,6 @@ fun PublicProfileScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Descripción
             Text(
                 text = user!!.description.ifBlank { "Sin descripción" },
                 style = MaterialTheme.typography.body2,
@@ -93,7 +84,33 @@ fun PublicProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sección de reseñas
+            // Resumen de reputación
+            if (!isReviewsLoading) {
+                val totalReseñas = reviews.size
+                val promedio = if (totalReseñas > 0) {
+                    reviews.map { it.rating }.average()
+                } else 0.0
+
+                val etiqueta = when {
+                    promedio >= 4.5 -> "Excelente reputación"
+                    promedio >= 3.5 -> "Buena reputación"
+                    promedio >= 2.5 -> "Reputación media"
+                    promedio > 0 -> "Reputación baja"
+                    else -> "Sin valoraciones aún"
+                }
+
+                Column(Modifier.padding(16.dp)) {
+                    Text("Reputación", style = MaterialTheme.typography.h6)
+                    Spacer(Modifier.height(4.dp))
+                    Text("⭐ Promedio: ${"%.1f".format(promedio)} de 5.0")
+                    Text("🗂 Total de reseñas: $totalReseñas")
+                    Text("📊 $etiqueta")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Sección de reseñas con trabajos
             UserReviewsSection(userId = user!!.uid)
         }
     }

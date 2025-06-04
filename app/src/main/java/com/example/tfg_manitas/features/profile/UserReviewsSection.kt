@@ -45,35 +45,52 @@
             }
 
             Column {
-                if (reseñasComoTrabajador.isNotEmpty()) {
-                    Text("Reseñas como trabajador", style = MaterialTheme.typography.subtitle1)
-                    Spacer(Modifier.height(8.dp))
-                    reseñasComoTrabajador.forEach { review ->
-                        ReviewCard(review)
+                reseñasComoTrabajador.forEach { review ->
+                    val job = jobs.find { it.id == review.jobId }
+                    if (job != null && job.isCompleted) {
+                        ReviewCard(review = review, job = job, viewerUserId = userId)
                     }
-                    Spacer(Modifier.height(16.dp))
                 }
 
-                if (reseñasComoContratista.isNotEmpty()) {
-                    Text("Reseñas como contratista", style = MaterialTheme.typography.subtitle1)
-                    Spacer(Modifier.height(8.dp))
-                    reseñasComoContratista.forEach { review ->
-                        ReviewCard(review)
+                reseñasComoContratista.forEach { review ->
+                    val job = jobs.find { it.id == review.jobId }
+                    if (job != null && job.isCompleted) {
+                        ReviewCard(review = review, job = job, viewerUserId = userId)
                     }
                 }
+
             }
         }
     }
 
     @Composable
-    fun ReviewCard(review: Review) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)) {
-            Text("⭐ ${review.rating}", style = MaterialTheme.typography.body1)
-            if (review.comment.isNotBlank()) {
-                Text(review.comment, style = MaterialTheme.typography.body2)
+    fun ReviewCard(review: Review, job: Job, viewerUserId: String) {
+        val rol = when (review.toUserId) {
+            job.selectedWorkerId -> "Trabajador"
+            job.userId -> "Contratista"
+            else -> "Usuario"
+        }
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            elevation = 4.dp
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = job.title,
+                    style = MaterialTheme.typography.subtitle1,
+                    color = MaterialTheme.colors.primary
+                )
+                Text("Rol: $rol", style = MaterialTheme.typography.caption)
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("Puntuación: ${review.rating} ★", style = MaterialTheme.typography.body2)
+                if (!review.comment.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("\"${review.comment}\"", style = MaterialTheme.typography.body2)
+                }
             }
-            Divider(modifier = Modifier.padding(vertical = 4.dp))
         }
     }
+

@@ -230,7 +230,7 @@ fun PublishTabScreen(navController: NavHostController) {
                             }
                         }
 
-                        // AlertDialog de confirmación de eliminación
+// AlertDialog de confirmación de eliminación
                         if (showDeleteDialog) {
                             AlertDialog(
                                 onDismissRequest = { showDeleteDialog = false },
@@ -239,11 +239,16 @@ fun PublishTabScreen(navController: NavHostController) {
                                 confirmButton = {
                                     TextButton(onClick = {
                                         coroutineScope.launch {
-                                            jobViewModel.deleteJob(job.id)
-                                            Toast.makeText(context, "Trabajo eliminado", Toast.LENGTH_SHORT).show()
-                                            jobViewModel.refreshJobs()
+                                            jobViewModel.deleteJobIfAllowed(job.id) { success, error ->
+                                                if (success) {
+                                                    Toast.makeText(context, "Trabajo eliminado", Toast.LENGTH_SHORT).show()
+                                                    jobViewModel.refreshJobs()
+                                                } else {
+                                                    Toast.makeText(context, error ?: "No se pudo eliminar el trabajo", Toast.LENGTH_LONG).show()
+                                                }
+                                                showDeleteDialog = false
+                                            }
                                         }
-                                        showDeleteDialog = false
                                     }) {
                                         Text("Eliminar", color = Color.Red)
                                     }
@@ -255,6 +260,7 @@ fun PublishTabScreen(navController: NavHostController) {
                                 }
                             )
                         }
+
                     }
                 }
             }

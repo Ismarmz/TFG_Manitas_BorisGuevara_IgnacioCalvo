@@ -12,8 +12,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.example.tfg_manitas.data.repository.ChatRepository
 
-
-
 class JobViewModel : ViewModel() {
 
     private val db = FirebaseFirestore.getInstance()
@@ -34,7 +32,6 @@ class JobViewModel : ViewModel() {
     private val _userMap = MutableStateFlow<Map<String, User>>(emptyMap())
     val userMap: StateFlow<Map<String, User>> = _userMap
 
-
     init {
         listenToUserJobs()
         listenToAllJobs()
@@ -50,25 +47,18 @@ class JobViewModel : ViewModel() {
         paymentAmount: String,
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
-    )
- {
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            onFailure("Usuario no autenticado")
-            return
-        }
+    ) {
+        val currentUser = auth.currentUser ?: return onFailure("Usuario no autenticado")
 
-     val job = Job(
-         title = title,
-         description = description,
-         tags = tags,
-         location = location,
-         dateTime = dateTime,
-         paymentAmount = paymentAmount,
-         userId = currentUser.uid
-     )
-
-
+        val job = Job(
+            title = title,
+            description = description,
+            tags = tags,
+            location = location,
+            dateTime = dateTime,
+            paymentAmount = paymentAmount,
+            userId = currentUser.uid
+        )
 
         viewModelScope.launch {
             db.collection("jobs")
@@ -84,69 +74,24 @@ class JobViewModel : ViewModel() {
         }
     }
 
-    fun loadAllUsers() {
-        FirebaseFirestore.getInstance().collection("users")
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val users = snapshot.mapNotNull { it.toObject(User::class.java) }
-                _userMap.value = users.associateBy { it.uid }
-            }
-    }
+    fun deleteJobIfAllowed(jobId: String, onResult: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("jobs").document(jobId).get().await()
+                val job = snapshot.toObject(Job::class.java)
 
-
-    fun listenToUserJobs() {
-        val uid = auth.currentUser?.uid ?: return
-        _error.value = null
-
-        db.collection("jobs")
-            .whereEqualTo("userId", uid)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    _error.value = error?.message ?: "Error al escuchar trabajos"
-                    return@addSnapshotListener
+                if (job?.isCompleted == true) {
+                    onResult(false, "No se puede eliminar un trabajo ya completado")
+                    return@launch
                 }
 
-                val jobsList = snapshot.map { doc ->
-                    doc.toObject(Job::class.java).copy(id = doc.id)
-                }
-                _userJobs.value = jobsList
-            }
-    }
-
-    fun listenToAllJobs() {
-        _error.value = null
-
-        db.collection("jobs")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null || snapshot == null) {
-                    _error.value = error?.message ?: "Error al escuchar trabajos"
-                    return@addSnapshotListener
-                }
-
-                val jobsList = snapshot.map { doc ->
-                    doc.toObject(Job::class.java).copy(id = doc.id)
-                }
-                _availableJobs.value = jobsList
-            }
-    }
-
-    fun deleteJob(jobId: String) {
-        _isLoading.value = true
-        db.collection("jobs").document(jobId)
-            .delete()
-            .addOnSuccessListener {
-                _isLoading.value = false
+                db.collection("jobs").document(jobId).delete().await()
                 listenToUserJobs()
+                onResult(true, null)
+            } catch (e: Exception) {
+                onResult(false, e.message)
             }
-            .addOnFailureListener {
-                _error.value = "Error al eliminar trabajo"
-                _isLoading.value = false
-            }
-    }
-
-    fun getJobById(id: String): StateFlow<Job?> {
-        val job = userJobs.value.find { it.id == id }
-        return MutableStateFlow(job)
+        }
     }
 
     fun updateJob(
@@ -161,81 +106,57 @@ class JobViewModel : ViewModel() {
             .addOnFailureListener { onFailure(it.message ?: "Error desconocido") }
     }
 
-    // 🔹 Nueva función: postularse a un trabajo
-    suspend fun applyToJob(jobId: String, userId: String): Result<Unit> {
-        return try {
-            val jobRef = db.collection("jobs").document(jobId)
-
-            db.runTransaction { transaction ->
-                val snapshot = transaction.get(jobRef)
-                val currentApplicants = snapshot.get("applicants") as? List<String> ?: emptyList()
-
-                if (!currentApplicants.contains(userId)) {
-                    val updatedApplicants = currentApplicants + userId
-                    transaction.update(jobRef, "applicants", updatedApplicants)
-                }
-            }.await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend fun applyToJob(jobId: String, userId: String): Result<Unit> = runCatching {
+        val jobRef = db.collection("jobs").document(jobId)
+        db.runTransaction { transaction ->
+            val snapshot = transaction.get(jobRef)
+            val currentApplicants = snapshot.get("applicants") as? List<String> ?: emptyList()
+            if (!currentApplicants.contains(userId)) {
+                transaction.update(jobRef, "applicants", currentApplicants + userId)
+            }
+        }.await()
     }
 
-
-    fun selectWorkerAndCreateChat(jobId: String, workerId: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+    fun selectWorkerAndCreateChat(
+        jobId: String,
+        workerId: String,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
         viewModelScope.launch {
-            val currentUserId = auth.currentUser?.uid
-            if (currentUserId == null) {
-                onFailure("Usuario no autenticado")
-                return@launch
-            }
-
+            val currentUserId = auth.currentUser?.uid ?: return@launch onFailure("Usuario no autenticado")
             try {
-                db.collection("jobs")
-                    .document(jobId)
-                    .update("selectedWorkerId", workerId)
-                    .await()
-
+                db.collection("jobs").document(jobId).update("selectedWorkerId", workerId).await()
                 val chatRepo = ChatRepository()
-                val result = chatRepo.getOrCreateChat(
-                    jobId = jobId,
-                    userIds = listOf(currentUserId, workerId)
-                )
-
-                if (result.isSuccess) {
-                    onSuccess()
-                } else {
-                    onFailure(result.exceptionOrNull()?.message ?: "Error al crear chat")
-                }
+                chatRepo.getOrCreateChat(jobId, listOf(currentUserId, workerId))
+                onSuccess()
             } catch (e: Exception) {
                 onFailure(e.message ?: "Error desconocido")
             }
         }
     }
 
-    fun shortlistWorker(jobId: String, workerId: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+    fun shortlistWorker(
+        jobId: String,
+        workerId: String,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 val jobRef = db.collection("jobs").document(jobId)
-
                 db.runTransaction { transaction ->
                     val snapshot = transaction.get(jobRef)
                     val currentList = snapshot.get("shortlistedWorkerIds") as? List<String> ?: emptyList()
-
                     if (!currentList.contains(workerId)) {
-                        val updatedList = currentList + workerId
-                        transaction.update(jobRef, "shortlistedWorkerIds", updatedList)
+                        transaction.update(jobRef, "shortlistedWorkerIds", currentList + workerId)
                     }
                 }.await()
 
-                // Crear chat al preseleccionar
                 val currentUserId = auth.currentUser?.uid
                 if (currentUserId != null) {
-                    val chatRepo = ChatRepository()
-                    chatRepo.getOrCreateChat(jobId, listOf(currentUserId, workerId))
+                    ChatRepository().getOrCreateChat(jobId, listOf(currentUserId, workerId))
                 }
-
                 onSuccess()
             } catch (e: Exception) {
                 onFailure(e.message ?: "Error al preseleccionar")
@@ -243,8 +164,37 @@ class JobViewModel : ViewModel() {
         }
     }
 
+    fun listenToUserJobs() {
+        val uid = auth.currentUser?.uid ?: return
+        _error.value = null
+        db.collection("jobs").whereEqualTo("userId", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) {
+                    _error.value = error?.message ?: "Error al escuchar trabajos"
+                    return@addSnapshotListener
+                }
+                _userJobs.value = snapshot.map { it.toObject(Job::class.java).copy(id = it.id) }
+            }
+    }
 
+    fun listenToAllJobs() {
+        _error.value = null
+        db.collection("jobs").addSnapshotListener { snapshot, error ->
+            if (error != null || snapshot == null) {
+                _error.value = error?.message ?: "Error al escuchar trabajos"
+                return@addSnapshotListener
+            }
+            _availableJobs.value = snapshot.map { it.toObject(Job::class.java).copy(id = it.id) }
+        }
+    }
 
+    fun loadAllUsers() {
+        db.collection("users").get()
+            .addOnSuccessListener { snapshot ->
+                val users = snapshot.mapNotNull { it.toObject(User::class.java) }
+                _userMap.value = users.associateBy { it.uid }
+            }
+    }
 
     fun refreshJobs() {
         listenToAllJobs()

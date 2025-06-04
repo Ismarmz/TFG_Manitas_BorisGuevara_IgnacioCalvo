@@ -25,10 +25,7 @@ fun JobForm(
 ) {
     val allTags = listOf("Hogar", "Exterior", "Técnico", "Express", "Físico", "No presencial")
     val selectedTags = remember { mutableStateListOf<String>() }
-
-    if (initialJob != null && selectedTags.isEmpty()) {
-        selectedTags.addAll(initialJob.tags)
-    }
+    if (initialJob != null && selectedTags.isEmpty()) selectedTags.addAll(initialJob.tags)
 
     var title by remember { mutableStateOf(TextFieldValue(initialJob?.title ?: "")) }
     var description by remember { mutableStateOf(TextFieldValue(initialJob?.description ?: "")) }
@@ -56,71 +53,77 @@ fun JobForm(
     val formattedTime = pickedTime?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: ""
     val combinedDateTime = if (formattedDate.isNotBlank() && formattedTime.isNotBlank()) "$formattedDate $formattedTime" else ""
 
-    var showValidationError by remember { mutableStateOf(false) }
+    var titleError by remember { mutableStateOf<String?>(null) }
+    var descriptionError by remember { mutableStateOf<String?>(null) }
+    var locationError by remember { mutableStateOf<String?>(null) }
+    var paymentError by remember { mutableStateOf<String?>(null) }
+    var tagsError by remember { mutableStateOf<String?>(null) }
+    var dateTimeError by remember { mutableStateOf<String?>(null) }
 
-    if (showValidationError) {
-        LaunchedEffect(Unit) {
-            snackbarHostState.showSnackbar("Por favor completa todos los campos")
-            showValidationError = false
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
         OutlinedTextField(
             value = title,
-            onValueChange = { title = it },
+            onValueChange = {
+                title = it
+                titleError = null
+            },
             label = { Text("Título") },
+            isError = titleError != null,
             modifier = Modifier.fillMaxWidth()
         )
+        titleError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         OutlinedTextField(
             value = description,
-            onValueChange = { description = it },
+            onValueChange = {
+                description = it
+                descriptionError = null
+            },
             label = { Text("Descripción") },
+            isError = descriptionError != null,
             modifier = Modifier.fillMaxWidth()
         )
+        descriptionError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         Text("Selecciona etiquetas:", style = MaterialTheme.typography.labelLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-
         FlowRow(mainAxisSpacing = 8.dp, crossAxisSpacing = 8.dp) {
             allTags.forEach { tag ->
                 val isSelected = selectedTags.contains(tag)
                 FilterChip(
                     selected = isSelected,
                     onClick = {
-                        if (isSelected) selectedTags.remove(tag)
-                        else selectedTags.add(tag)
+                        tagsError = null
+                        if (isSelected) selectedTags.remove(tag) else selectedTags.add(tag)
                     },
-                    label = { Text(tag) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = MaterialTheme.colorScheme.primary,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                        labelColor = MaterialTheme.colorScheme.onSurface
-                    )
+                    label = { Text(tag) }
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        tagsError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         OutlinedTextField(
             value = paymentAmount,
-            onValueChange = { paymentAmount = it },
+            onValueChange = {
+                paymentAmount = it
+                paymentError = null
+            },
             label = { Text("Remuneración (USD)") },
+            isError = paymentError != null,
             modifier = Modifier.fillMaxWidth()
         )
+        paymentError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         OutlinedTextField(
             value = location,
-            onValueChange = { location = it },
+            onValueChange = {
+                location = it
+                locationError = null
+            },
             label = { Text("Ubicación") },
+            isError = locationError != null,
             modifier = Modifier.fillMaxWidth()
         )
+        locationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -128,40 +131,56 @@ fun JobForm(
             Text(if (formattedDate.isNotBlank()) "🗓 $formattedDate" else "Seleccionar fecha")
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
         Button(onClick = { timeDialogState.show() }, modifier = Modifier.fillMaxWidth()) {
             Text(if (formattedTime.isNotBlank()) "🕒 $formattedTime" else "Seleccionar hora")
         }
 
-        MaterialDialog(dialogState = dateDialogState, buttons = {
-            positiveButton("Aceptar")
-            negativeButton("Cancelar")
-        }) {
-            datepicker { pickedDate = it }
+        dateTimeError?.let {
+            Text(it, color = MaterialTheme.colorScheme.error)
         }
 
-        MaterialDialog(dialogState = timeDialogState, buttons = {
+        MaterialDialog(dateDialogState, buttons = {
             positiveButton("Aceptar")
             negativeButton("Cancelar")
-        }) {
-            timepicker(is24HourClock = true) { pickedTime = it }
-        }
+        }) { datepicker { pickedDate = it } }
+
+        MaterialDialog(timeDialogState, buttons = {
+            positiveButton("Aceptar")
+            negativeButton("Cancelar")
+        }) { timepicker(is24HourClock = true) { pickedTime = it } }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
             onClick = {
-                if (
-                    title.text.isBlank() ||
-                    description.text.isBlank() ||
-                    location.text.isBlank() ||
-                    combinedDateTime.isBlank() ||
-                    paymentAmount.text.isBlank()
-                ) {
-                    showValidationError = true
-                    return@Button
+                var valid = true
+
+                if (title.text.length < 5) {
+                    titleError = "El título debe tener al menos 5 caracteres"
+                    valid = false
                 }
+                if (description.text.length < 30) {
+                    descriptionError = "La descripción debe tener al menos 30 caracteres"
+                    valid = false
+                }
+                if (location.text.isBlank()) {
+                    locationError = "Ubicación obligatoria"
+                    valid = false
+                }
+                if (paymentAmount.text.toDoubleOrNull()?.let { it > 0 } != true) {
+                    paymentError = "Remuneración inválida"
+                    valid = false
+                }
+                if (selectedTags.isEmpty()) {
+                    tagsError = "Selecciona al menos una etiqueta"
+                    valid = false
+                }
+                if (combinedDateTime.isBlank()) {
+                    dateTimeError = "Selecciona fecha y hora"
+                    valid = false
+                }
+
+                if (!valid) return@Button
 
                 val job = (initialJob ?: Job()).copy(
                     title = title.text,
@@ -171,7 +190,6 @@ fun JobForm(
                     dateTime = combinedDateTime,
                     paymentAmount = paymentAmount.text
                 )
-
                 onSubmit(job)
             },
             enabled = !isLoading,
