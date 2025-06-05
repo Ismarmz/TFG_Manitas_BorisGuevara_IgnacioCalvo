@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.tfg_manitas.R
 import com.example.tfg_manitas.data.repository.UserRepository
-import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -162,8 +162,21 @@ fun LoginScreen(navController: NavHostController) {
                                             }
                                         }
                                     } else {
-                                        val msg = task.exception?.message ?: "Error al iniciar sesión"
-                                        errorMessage = msg
+                                        errorMessage = when (val e = task.exception) {
+                                            is FirebaseAuthInvalidUserException -> {
+                                                if (e.errorCode == "ERROR_USER_DISABLED") {
+                                                    "Tu cuenta ha sido deshabilitada."
+                                                } else {
+                                                    "No existe una cuenta con ese correo."
+                                                }
+                                            }
+                                            is FirebaseAuthInvalidCredentialsException -> {
+                                                "La contraseña es incorrecta."
+                                            }
+                                            else -> {
+                                                e?.localizedMessage ?: "Error al iniciar sesión."
+                                            }
+                                        }
                                     }
                                     isLoading = false
                                 }

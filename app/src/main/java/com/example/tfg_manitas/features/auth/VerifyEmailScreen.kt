@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -20,6 +21,28 @@ fun VerifyEmailScreen(navController: NavController) {
     val user = auth.currentUser
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        user?.reload()
+        if (user?.isEmailVerified == true) {
+            navController.navigate("completeProfile") {
+                popUpTo("verifyEmail") { inclusive = true }
+            }
+        }
+    }
+
+    LaunchedEffect(true) {
+        while (true) {
+            delay(5000)
+            user?.reload()
+            if (user?.isEmailVerified == true) {
+                navController.navigate("completeProfile") {
+                    popUpTo("verifyEmail") { inclusive = true }
+                }
+                break
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -80,8 +103,13 @@ fun VerifyEmailScreen(navController: NavController) {
 
                     Button(
                         onClick = {
-                            user?.sendEmailVerification()
-                            Toast.makeText(context, "Correo reenviado", Toast.LENGTH_SHORT).show()
+                            user?.sendEmailVerification()?.addOnCompleteListener {
+                                if (it.isSuccessful) {
+                                    Toast.makeText(context, "Correo reenviado", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Error al reenviar correo", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()

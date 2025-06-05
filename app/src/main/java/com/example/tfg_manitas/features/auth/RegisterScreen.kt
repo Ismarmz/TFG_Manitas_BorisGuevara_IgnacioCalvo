@@ -16,10 +16,11 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -136,24 +137,27 @@ fun RegisterScreen(navController: NavHostController) {
                             isLoading = true
                             errorMessage = null
 
+                            val trimmedEmail = email.trim()
+                            val trimmedPassword = password.trim()
+                            val trimmedConfirm = confirmPassword.trim()
+
+                            val passwordRegex = Regex("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#\$%^&+=!]).{6,}")
+
                             when {
-                                !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                                !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches() -> {
                                     errorMessage = "Correo electrónico no válido"
                                     isLoading = false
                                 }
-
-                                password.length < 6 -> {
-                                    errorMessage = "La contraseña debe tener al menos 6 caracteres"
+                                !passwordRegex.matches(trimmedPassword) -> {
+                                    errorMessage = "La contraseña debe tener mayúscula, número y símbolo"
                                     isLoading = false
                                 }
-
-                                password != confirmPassword -> {
+                                trimmedPassword != trimmedConfirm -> {
                                     errorMessage = "Las contraseñas no coinciden"
                                     isLoading = false
                                 }
-
                                 else -> {
-                                    auth.createUserWithEmailAndPassword(email, password)
+                                    auth.createUserWithEmailAndPassword(trimmedEmail, trimmedPassword)
                                         .addOnCompleteListener { task ->
                                             if (task.isSuccessful) {
                                                 auth.currentUser?.sendEmailVerification()
@@ -170,12 +174,13 @@ fun RegisterScreen(navController: NavHostController) {
                                                     }
                                                 }
                                             } else {
-                                                val errorCode =
-                                                    (task.exception as? com.google.firebase.auth.FirebaseAuthException)?.errorCode
-                                                errorMessage = when (errorCode) {
-                                                    "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado"
-                                                    "ERROR_WEAK_PASSWORD" -> "La contraseña es demasiado débil"
-                                                    else -> "Error al registrar. Inténtalo de nuevo."
+                                                errorMessage = when (val e = task.exception) {
+                                                    is FirebaseAuthException -> when (e.errorCode) {
+                                                        "ERROR_EMAIL_ALREADY_IN_USE" -> "Este correo ya está registrado"
+                                                        "ERROR_WEAK_PASSWORD" -> "La contraseña es demasiado débil"
+                                                        else -> "Error: ${e.localizedMessage}"
+                                                    }
+                                                    else -> e?.localizedMessage ?: "Error al registrar"
                                                 }
                                             }
                                             isLoading = false

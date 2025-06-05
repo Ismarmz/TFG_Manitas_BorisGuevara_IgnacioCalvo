@@ -1,5 +1,6 @@
 package com.example.tfg_manitas.features.auth
 
+import android.util.Patterns
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -13,10 +14,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ResetPasswordScreen(navController: NavHostController) {
@@ -94,14 +96,15 @@ fun ResetPasswordScreen(navController: NavHostController) {
                         onClick = {
                             isLoading = true
                             errorMessage = null
+                            val cleanEmail = email.trim()
 
-                            if (email.isBlank()) {
-                                errorMessage = "Ingresa un correo válido"
+                            if (!Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
+                                errorMessage = "El correo no tiene un formato válido"
                                 isLoading = false
                                 return@Button
                             }
 
-                            auth.sendPasswordResetEmail(email)
+                            auth.sendPasswordResetEmail(cleanEmail)
                                 .addOnCompleteListener { task ->
                                     CoroutineScope(Dispatchers.Main).launch {
                                         if (task.isSuccessful) {
@@ -115,7 +118,8 @@ fun ResetPasswordScreen(navController: NavHostController) {
                                                 popUpTo("resetPassword") { inclusive = true }
                                             }
                                         } else {
-                                            errorMessage = "Error al enviar correo de recuperación"
+                                            val e = task.exception as? FirebaseAuthException
+                                            errorMessage = e?.localizedMessage ?: "Error al enviar correo de recuperación"
                                         }
                                         isLoading = false
                                     }
