@@ -332,9 +332,14 @@ fun PublishTabScreen(navController: NavHostController) {
                                                     }
                                                 )
                                             },
-                                            modifier = Modifier.fillMaxWidth()
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = ButtonDefaults.buttonColors(
+                                                backgroundColor = Color(0xFFF4A950),
+                                                contentColor = Color(0xFF2F4C5A)
+                                            ),
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 10.dp)
                                         ) {
-                                            Text("Marcar como completado")
+                                            Text("Marcar como completado", fontSize = 14.sp, fontWeight = FontWeight.Medium)
                                         }
                                     } else if (job.isCompleted) {
                                         Box(
