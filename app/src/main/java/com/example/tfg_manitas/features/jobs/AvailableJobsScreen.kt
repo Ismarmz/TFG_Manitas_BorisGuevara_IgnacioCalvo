@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -289,18 +290,36 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-// Carrusel - PUNTUACIÓN
+
                         Text("Puntuación mínima", style = MaterialTheme.typography.labelLarge)
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        val ratingOptions = listOf("Todos", "≥ 3⭐", "≥ 4⭐")
+                        val ratingOptions = listOf("Todos", "≥ 3", "≥ 4")
 
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             items(ratingOptions) { option ->
+                                val isStarFilter = option != "Todos"
+                                val stars = option.filter { it.isDigit() }.toIntOrNull()
+
                                 FilterChip(
                                     selected = selectedRating == option,
                                     onClick = { selectedRating = option },
-                                    label = { Text(option) },
+                                    label = {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (isStarFilter && stars != null) {
+                                                repeat(stars) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Star,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFFF4A950),
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            } else {
+                                                Text("Todos")
+                                            }
+                                        }
+                                    },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = MaterialTheme.colorScheme.secondary,
                                         selectedLabelColor = MaterialTheme.colorScheme.onSecondary

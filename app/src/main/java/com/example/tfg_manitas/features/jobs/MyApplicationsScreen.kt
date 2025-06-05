@@ -26,6 +26,9 @@ import com.example.tfg_manitas.ui.theme.VerdeExito
 import com.google.firebase.auth.FirebaseAuth
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
 
 
@@ -130,12 +133,44 @@ fun MyApplicationsScreen(
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                Text(
-                                    text = "📍 ${job.location}  |  🕒 ${job.dateTime}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                                )
+                                val iconColor = Color(0xFF2F4C5A)
 
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Place,
+                                        contentDescription = "Ubicación",
+                                        tint = iconColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(text = job.location, style = MaterialTheme.typography.bodyMedium)
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = "Fecha y hora",
+                                        tint = iconColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(text = job.dateTime, style = MaterialTheme.typography.bodyMedium)
+                                }
+
+                                Spacer(modifier = Modifier.height(4.dp))
+
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.AttachMoney,
+                                        contentDescription = "Pago",
+                                        tint = iconColor,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(text = job.paymentAmount, style = MaterialTheme.typography.bodyMedium)
+                                }
                                 Spacer(modifier = Modifier.height(6.dp))
 
                                 Text(
@@ -157,12 +192,21 @@ fun MyApplicationsScreen(
                                                 .background(VerdeExito.copy(alpha = 0.1f))
                                                 .padding(vertical = 8.dp, horizontal = 12.dp)
                                         ) {
-                                            Text(
-                                                text = estadoTexto,
-                                                color = VerdeExito,
-                                                style = MaterialTheme.typography.labelLarge,
-                                                fontWeight = FontWeight.Medium
-                                            )
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    contentDescription = "Estado",
+                                                    tint = VerdeExito,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Spacer(Modifier.width(6.dp))
+                                                Text(
+                                                    text = estadoTexto.removePrefix("✅ "),
+                                                    color = VerdeExito,
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
                                         }
                                     }
 
@@ -227,11 +271,20 @@ fun MyApplicationsScreen(
                                                     shape = RoundedCornerShape(8.dp)
                                                 )
                                         ) {
-                                            Text(
-                                                text = "✅ Ya valoraste al contratista",
-                                                modifier = Modifier.padding(8.dp),
-                                                color = Color(0xFF2F4C5A)
-                                            )
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    contentDescription = "Valoración realizada",
+                                                    tint = Color(0xFF2F4C5A),
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Spacer(Modifier.width(6.dp))
+                                                Text(
+                                                    text = "Ya valoraste al contratista",
+                                                    modifier = Modifier.padding(vertical = 8.dp),
+                                                    color = Color(0xFF2F4C5A)
+                                                )
+                                            }
                                         }
                                     }
                                 }
