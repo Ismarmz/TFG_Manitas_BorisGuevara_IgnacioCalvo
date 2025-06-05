@@ -2,6 +2,7 @@ package com.example.tfg_manitas.features.jobs
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -241,10 +243,20 @@ fun PublishTabScreen(navController: NavHostController) {
                                                 }
                                             }
 
-                                            Text(
-                                                "✅ Asignado a: ${selectedName ?: job.selectedWorkerId}",
-                                                color = Color(0xFF10B981)
-                                            )
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(6.dp))
+                                                    .border(1.dp, Color(0xFF10B981), RoundedCornerShape(6.dp))
+                                                    .background(Color(0xFF10B981).copy(alpha = 0.1f))
+                                                    .padding(vertical = 8.dp, horizontal = 12.dp)
+                                            ) {
+                                                Text(
+                                                    "✅ Asignado a: ${selectedName ?: job.selectedWorkerId}",
+                                                    color = Color(0xFF10B981),
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
                                         }
                                     } else {
                                         Text("Sin postulantes aún", color = Color.Gray)
@@ -273,12 +285,20 @@ fun PublishTabScreen(navController: NavHostController) {
                                             Text("Marcar como completado")
                                         }
                                     } else if (job.isCompleted) {
-                                        Text(
-                                            text = "✅ Trabajo completado",
-                                            style = MaterialTheme.typography.subtitle2,
-                                            color = Color(0xFF10B981),
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .border(1.dp, Color(0xFF10B981), RoundedCornerShape(6.dp))
+                                                .background(Color(0xFF10B981).copy(alpha = 0.1f))
+                                                .padding(vertical = 8.dp, horizontal = 12.dp)
+                                        ) {
+                                            Text(
+                                                text = "✅ Trabajo completado",
+                                                color = Color(0xFF10B981),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
                                     }
                                 }
                             }
