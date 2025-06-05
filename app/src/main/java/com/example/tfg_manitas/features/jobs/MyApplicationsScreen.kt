@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Schedule
@@ -143,7 +144,10 @@ fun MyApplicationsScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(Modifier.width(4.dp))
-                                    Text(text = job.location, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        text = job.location,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
 
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -156,7 +160,10 @@ fun MyApplicationsScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = job.dateTime, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        text = job.dateTime,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
 
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -169,7 +176,10 @@ fun MyApplicationsScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text(text = job.paymentAmount, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        text = job.paymentAmount,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
                                 }
                                 Spacer(modifier = Modifier.height(6.dp))
 
@@ -230,60 +240,92 @@ fun MyApplicationsScreen(
                                     }
 
                                     else -> {
-                                        Text(
-                                            text = estadoTexto,
-                                            color = estadoColor,
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(12.dp))
-
-                                if (job.selectedWorkerId == currentUserId && job.isCompleted) {
-                                    var hasReviewed by remember { mutableStateOf(false) }
-
-                                    LaunchedEffect(job.id) {
-                                        reviewRepo.hasReviewed(job.id, currentUserId, job.userId)
-                                            .onSuccess { hasReviewed = it }
-                                    }
-
-                                    if (!hasReviewed) {
-                                        Button(
-                                            onClick = {
-                                                navController.navigate("review/${job.id}/${job.userId}")
-                                            },
-                                            modifier = Modifier.fillMaxWidth(),
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = Color(0xFFF4A950),
-                                                contentColor = Color(0xFF2F4C5A)
-                                            )
-                                        ) {
-                                            Text("Valorar al contratista")
-                                        }
-                                    } else {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(8.dp)
-                                                .background(
-                                                    color = Color(0xFFF4A950).copy(alpha = 0.1f),
-                                                    shape = RoundedCornerShape(8.dp)
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .border(
+                                                    1.dp,
+                                                    MaterialTheme.colorScheme.error,
+                                                    RoundedCornerShape(6.dp)
                                                 )
+                                                .background(
+                                                    MaterialTheme.colorScheme.error.copy(
+                                                        alpha = 0.1f
+                                                    )
+                                                )
+                                                .padding(vertical = 8.dp, horizontal = 12.dp)
                                         ) {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Icon(
-                                                    imageVector = Icons.Default.CheckCircle,
-                                                    contentDescription = "Valoración realizada",
-                                                    tint = Color(0xFF2F4C5A),
+                                                    imageVector = Icons.Default.Cancel,
+                                                    contentDescription = "No seleccionado",
+                                                    tint = MaterialTheme.colorScheme.error,
                                                     modifier = Modifier.size(18.dp)
                                                 )
-                                                Spacer(Modifier.width(6.dp))
+                                                Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
-                                                    text = "Ya valoraste al contratista",
-                                                    modifier = Modifier.padding(vertical = 8.dp),
-                                                    color = Color(0xFF2F4C5A)
+                                                    text = "No fuiste seleccionado",
+                                                    color = MaterialTheme.colorScheme.error,
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    fontWeight = FontWeight.Medium
                                                 )
+                                            }
+                                        }
+
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        if (job.selectedWorkerId == currentUserId && job.isCompleted) {
+                                            var hasReviewed by remember { mutableStateOf(false) }
+
+                                            LaunchedEffect(job.id) {
+                                                reviewRepo.hasReviewed(
+                                                    job.id,
+                                                    currentUserId,
+                                                    job.userId
+                                                )
+                                                    .onSuccess { hasReviewed = it }
+                                            }
+
+                                            if (!hasReviewed) {
+                                                Button(
+                                                    onClick = {
+                                                        navController.navigate("review/${job.id}/${job.userId}")
+                                                    },
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = Color(0xFFF4A950),
+                                                        contentColor = Color(0xFF2F4C5A)
+                                                    )
+                                                ) {
+                                                    Text("Valorar al contratista")
+                                                }
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(8.dp)
+                                                        .background(
+                                                            color = Color(0xFFF4A950).copy(alpha = 0.1f),
+                                                            shape = RoundedCornerShape(8.dp)
+                                                        )
+                                                ) {
+                                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                                        Icon(
+                                                            imageVector = Icons.Default.CheckCircle,
+                                                            contentDescription = "Valoración realizada",
+                                                            tint = Color(0xFF2F4C5A),
+                                                            modifier = Modifier.size(18.dp)
+                                                        )
+                                                        Spacer(Modifier.width(6.dp))
+                                                        Text(
+                                                            text = "Ya valoraste al contratista",
+                                                            modifier = Modifier.padding(vertical = 8.dp),
+                                                            color = Color(0xFF2F4C5A)
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                     }

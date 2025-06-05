@@ -194,12 +194,11 @@ fun PublishTabScreen(navController: NavHostController) {
                                             val isPreselected = job.shortlistedWorkerIds.contains(applicantId)
                                             val isFinal = job.selectedWorkerId == applicantId
 
-                                            Row(
+                                            Column(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .padding(vertical = 4.dp),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
+                                                    .padding(vertical = 8.dp),
+                                                horizontalAlignment = Alignment.CenterHorizontally
                                             ) {
                                                 TextButton(onClick = {
                                                     navController.navigate("publicProfile/$applicantId")
@@ -211,8 +210,10 @@ fun PublishTabScreen(navController: NavHostController) {
                                                     )
                                                 }
 
+                                                Spacer(modifier = Modifier.height(4.dp))
+
                                                 Row(
-                                                    modifier = Modifier.fillMaxWidth(),
+                                                    modifier = Modifier.fillMaxWidth(0.9f),
                                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                                 ) {
                                                     if (!isFinal) {
@@ -272,7 +273,6 @@ fun PublishTabScreen(navController: NavHostController) {
                                                         Text("Asignar", fontSize = 13.sp)
                                                     }
                                                 }
-
                                             }
                                         }
 
@@ -292,11 +292,22 @@ fun PublishTabScreen(navController: NavHostController) {
                                                     .background(Color(0xFF10B981).copy(alpha = 0.1f))
                                                     .padding(vertical = 8.dp, horizontal = 12.dp)
                                             ) {
-                                                Text(
-                                                    "✅ Asignado a: ${selectedName ?: job.selectedWorkerId}",
-                                                    color = Color(0xFF10B981),
-                                                    fontWeight = FontWeight.Medium
-                                                )
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.CheckCircle,
+                                                        contentDescription = "Asignado",
+                                                        tint = Color(0xFF10B981),
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(6.dp))
+                                                    Text(
+                                                        text = "Asignado a: ${selectedName ?: job.selectedWorkerId}",
+                                                        color = Color(0xFF10B981),
+                                                        fontWeight = FontWeight.Medium
+                                                    )
+                                                }
                                             }
                                         }
                                     } else {

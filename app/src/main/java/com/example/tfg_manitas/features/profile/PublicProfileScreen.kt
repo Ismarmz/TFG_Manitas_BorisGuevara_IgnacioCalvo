@@ -6,6 +6,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,165 +60,195 @@ fun PublicProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFFF8F0)) // Fondo crema
+                .background(Color(0xFFFFF8F0))
         ) {
-            Column(
+            // ← Botón de volver (visible ahora)
+            IconButton(
+                onClick = { navController.popBackStack() },
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 80.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.profile),
-                    contentDescription = "Foto de perfil",
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = Color(0xFF2F4C5A)
+                )
+            }
+                Column(
                     modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+                        .fillMaxSize()
+                        .padding(top = 80.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.profile),
+                        contentDescription = "Foto de perfil",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = user!!.name.ifBlank { "Sin nombre" },
-                    style = MaterialTheme.typography.h6,
-                    textAlign = TextAlign.Center
-                )
+                    Text(
+                        text = user!!.name.ifBlank { "Sin nombre" },
+                        style = MaterialTheme.typography.h6,
+                        textAlign = TextAlign.Center
+                    )
 
-                Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                Text(
-                    text = user!!.description.ifBlank { "Sin descripción" },
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                    Text(
+                        text = user!!.description.ifBlank { "Sin descripción" },
+                        style = MaterialTheme.typography.body2,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                if (!isReviewsLoading) {
-                    val totalReseñas = reviews.size
-                    val promedio = if (totalReseñas > 0) {
-                        reviews.map { it.rating }.average()
-                    } else 0.0
+                    if (!isReviewsLoading) {
+                        val totalReseñas = reviews.size
+                        val promedio = if (totalReseñas > 0) {
+                            reviews.map { it.rating }.average()
+                        } else 0.0
 
-                    val etiqueta = when {
-                        promedio >= 4.5 -> "Reputación Excelente"
-                        promedio >= 3.5 -> "Reputación Buena"
-                        promedio >= 2.5 -> "Reputación Media"
-                        promedio > 0 -> "Reputación Baja"
-                        else -> "Sin valoraciones aún"
-                    }
+                        val etiqueta = when {
+                            promedio >= 4.5 -> "Reputación Excelente"
+                            promedio >= 3.5 -> "Reputación Buena"
+                            promedio >= 2.5 -> "Reputación Media"
+                            promedio > 0 -> "Reputación Baja"
+                            else -> "Sin valoraciones aún"
+                        }
 
-                    val etiquetaColor = when {
-                        promedio >= 4.5 -> Color(0xFF10B981)
-                        promedio >= 3.5 -> Color(0xFF6EE7B7)
-                        promedio >= 2.5 -> Color(0xFFFBBF24)
-                        promedio > 0 -> Color(0xFFF87171)
-                        else -> Color.Gray
-                    }
+                        val etiquetaColor = when {
+                            promedio >= 4.5 -> Color(0xFF10B981)
+                            promedio >= 3.5 -> Color(0xFF6EE7B7)
+                            promedio >= 2.5 -> Color(0xFFFBBF24)
+                            promedio > 0 -> Color(0xFFF87171)
+                            else -> Color.Gray
+                        }
 
-                    Column(Modifier.padding(horizontal = 16.dp)) {
+                        Column(Modifier.padding(horizontal = 16.dp)) {
 
-                        Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(8.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 4.dp)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = 0.dp,
-                                    backgroundColor = Color(0xFFFFF8F0),
-                                    modifier = Modifier.fillMaxWidth()
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier.padding(12.dp),
-                                        contentAlignment = Alignment.Center
+                                    Card(
+                                        shape = RoundedCornerShape(12.dp),
+                                        elevation = 0.dp,
+                                        backgroundColor = Color(0xFFFFF8F0),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("⭐ ${"%.1f".format(promedio)}")
+                                        Box(
+                                            modifier = Modifier.padding(12.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Star,
+                                                    contentDescription = "Promedio",
+                                                    tint = Color(0xFF2F4C5A)
+                                                )
+                                                Text("${"%.1f".format(promedio)}")
+                                            }
+                                        }
                                     }
                                 }
-                            }
 
-                            Divider(
-                                color = Color.Gray.copy(alpha = 0.5f),
-                                modifier = Modifier
-                                    .height(40.dp)
-                                    .width(1.dp)
-                            )
+                                Divider(
+                                    color = Color.Gray.copy(alpha = 0.5f),
+                                    modifier = Modifier
+                                        .height(40.dp)
+                                        .width(1.dp)
+                                )
 
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 4.dp)
-                            ) {
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = 0.dp,
-                                    backgroundColor = Color(0xFFFFF8F0),
-                                    modifier = Modifier.fillMaxWidth()
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier.padding(12.dp),
-                                        contentAlignment = Alignment.Center
+                                    Card(
+                                        shape = RoundedCornerShape(12.dp),
+                                        elevation = 0.dp,
+                                        backgroundColor = Color(0xFFFFF8F0),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Text("🗂 Reseñas: $totalReseñas")
+                                        Box(
+                                            modifier = Modifier.padding(12.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Folder,
+                                                    contentDescription = "Total reseñas",
+                                                    tint = Color(0xFF2F4C5A)
+                                                )
+                                                Text("Reseñas: $totalReseñas")
+                                            }
+                                        }
                                     }
                                 }
-                            }
 
-                            Divider(
-                                color = Color.Gray.copy(alpha = 0.5f),
-                                modifier = Modifier
-                                    .height(40.dp)
-                                    .width(1.dp)
-                            )
+                                Divider(
+                                    color = Color.Gray.copy(alpha = 0.5f),
+                                    modifier = Modifier
+                                        .height(40.dp)
+                                        .width(1.dp)
+                                )
 
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 4.dp)
-                            ) {
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    elevation = 0.dp,
-                                    backgroundColor = Color(0xFFFFF8F0),
-                                    modifier = Modifier.fillMaxWidth()
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 4.dp)
                                 ) {
-                                    Box(
-                                        modifier = Modifier.padding(12.dp),
-                                        contentAlignment = Alignment.Center
+                                    Card(
+                                        shape = RoundedCornerShape(12.dp),
+                                        elevation = 0.dp,
+                                        backgroundColor = Color(0xFFFFF8F0),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(
-                                                text = "📊 Reputación:",
-                                                color = Color.Black,
-                                                textAlign = TextAlign.Center
-                                            )
-                                            Text(
-                                                text = etiqueta.replace("Reputación ", "").replace("reputación ", ""),
-                                                color = etiquetaColor,
-                                                style = MaterialTheme.typography.body2,
-                                                textAlign = TextAlign.Center
-                                            )
+                                        Box(
+                                            modifier = Modifier.padding(12.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.BarChart,
+                                                        contentDescription = "Reputación",
+                                                        tint = Color(0xFF2F4C5A)
+                                                    )
+                                                    Text(
+                                                        text = etiqueta.replace("Reputación ", "")
+                                                            .replace("reputación ", ""),
+                                                        color = etiquetaColor,
+                                                        style = MaterialTheme.typography.body2,
+                                                        textAlign = TextAlign.Center
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    UserReviewsSection(userId = user!!.uid)
                 }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                UserReviewsSection(userId = user!!.uid)
             }
         }
     }
-}
