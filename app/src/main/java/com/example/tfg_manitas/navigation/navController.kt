@@ -26,7 +26,6 @@ import com.example.tfg_manitas.features.reviews.ReviewScreen
 import com.example.tfg_manitas.features.jobs.PublishTabScreen
 import com.example.tfg_manitas.features.jobs.PostJobScreen
 
-
 @Composable
 fun AppNavigation(navController: NavHostController, startDestination: String) {
     NavHost(navController = navController, startDestination = startDestination) {
@@ -53,11 +52,6 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
                 navController = navController
             )
         }
-
-
-
-
-
         // Perfil público
         composable(
             route = "publicProfile/{userId}",
@@ -68,22 +62,16 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
         }
 
         // Editar trabajo
-        composable(
-            route = "editJob/{jobId}",
-            arguments = listOf(navArgument("jobId") { type = NavType.StringType })
-        ) { back ->
-            val jobId = back.arguments?.getString("jobId") ?: ""
-            val jobViewModel: JobViewModel = viewModel()
+        composable("editJob/{jobId}") { backStackEntry ->
+            val jobViewModel: JobViewModel = viewModel(backStackEntry)
             val userJobs by jobViewModel.userJobs.collectAsState()
+            val jobId = backStackEntry.arguments?.getString("jobId") ?: ""
             val job = userJobs.find { it.id == jobId }
 
             if (job != null) {
-                EditJobScreen(job = job, navController = navController)
+                EditJobScreen(job = job, navController = navController, jobViewModel = jobViewModel)
             } else {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
@@ -107,17 +95,20 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
         }
 
         composable(
-            route = "map_picker?returnTo={returnTo}",
-            arguments = listOf(
-                navArgument("returnTo") {
-                    defaultValue = "post"
-                    type = NavType.StringType
-                }
-            )
+            "map_picker?returnTo={returnTo}",
+            arguments = listOf(navArgument("returnTo") { defaultValue = "post" })
         ) { backStackEntry ->
             val returnTo = backStackEntry.arguments?.getString("returnTo") ?: "post"
-            val jobViewModel: JobViewModel = viewModel()
-            MapPickerScreen(navController = navController, jobViewModel = jobViewModel, returnTo = returnTo)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(returnTo)
+            }
+            val jobViewModel: JobViewModel = viewModel(parentEntry)
+            MapPickerScreen(
+                navController = navController,
+                jobViewModel = jobViewModel,
+                returnTo = returnTo
+            )
         }
+
     }
 }

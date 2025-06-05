@@ -16,9 +16,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun EditJobScreen(
     job: Job,
-    jobViewModel: JobViewModel = viewModel(),
-    navController: NavHostController
-) {
+    navController: NavHostController,
+    jobViewModel: JobViewModel
+)
+ {
     val isLoading by jobViewModel.isLoading.collectAsState()
     val selectedLocation by jobViewModel.selectedLocation.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
