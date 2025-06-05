@@ -11,7 +11,6 @@ import androidx.activity.compose.setContent
 import androidx.annotation.OptIn
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.rememberNavController

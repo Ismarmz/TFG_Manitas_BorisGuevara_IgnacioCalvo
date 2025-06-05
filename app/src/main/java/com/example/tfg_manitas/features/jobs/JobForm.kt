@@ -15,6 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.flowlayout.FlowRow
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -26,12 +29,15 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun JobForm(
+    navController: NavHostController,
     initialJob: Job? = null,
     submitLabel: String = "Guardar",
     onSubmit: (Job) -> Unit,
     isLoading: Boolean = false,
-    snackbarHostState: SnackbarHostState
-) {
+    snackbarHostState: SnackbarHostState,
+    latitude: Double? = null,
+    longitude: Double? = null
+){
     val allTags = listOf("Hogar", "Exterior", "Técnico", "Express", "Físico", "No presencial")
     val selectedTags = remember { mutableStateListOf<String>() }
     if (initialJob != null && selectedTags.isEmpty()) selectedTags.addAll(initialJob.tags)
@@ -69,6 +75,8 @@ fun JobForm(
     var paymentError by remember { mutableStateOf<String?>(null) }
     var tagsError by remember { mutableStateOf<String?>(null) }
     var dateTimeError by remember { mutableStateOf<String?>(null) }
+    val jobViewModel: JobViewModel = viewModel()
+    val selectedLocation by jobViewModel.selectedLocation.collectAsState()
 
     Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
 
@@ -147,16 +155,25 @@ fun JobForm(
         Text("Ubicación y Pago", style = MaterialTheme.typography.labelLarge)
 
         OutlinedTextField(
-            value = location,
-            onValueChange = {
-                location = it
-                locationError = null
-            },
-            label = { Text("Ubicación") },
-            isError = locationError != null,
+            value = selectedLocation?.third ?: "Ubicación no seleccionada",
+            onValueChange = {},
+            enabled = false,
+            label = { Text("Ubicación seleccionada") },
             modifier = Modifier.fillMaxWidth()
         )
-        locationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+
+// Botón para abrir el mapa
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = { navController.navigate("map_picker") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF2F4C5A),
+                contentColor = Color.White
+            )
+        ) {
+            Text("Seleccionar ubicación en mapa")
+        }
 
         Spacer(Modifier.height(8.dp))
         Text("Remuneración", style = MaterialTheme.typography.labelLarge)
@@ -259,9 +276,10 @@ fun JobForm(
                     descriptionError = "La descripción debe tener al menos 30 caracteres"
                     valid = false
                 }
-                if (location.text.isBlank()) {
-                    locationError = "Ubicación obligatoria"
-                    valid = false
+                val loc = selectedLocation
+                if (loc == null) {
+                    locationError = "Selecciona una ubicación válida"
+                    return@Button
                 }
                 if (paymentSlider <= 0f) {
                     paymentError = "La remuneración debe ser mayor a 0"
@@ -275,6 +293,10 @@ fun JobForm(
                     dateTimeError = "Selecciona fecha y hora"
                     valid = false
                 }
+                if (loc == null) {
+                    locationError = "Selecciona una ubicación válida"
+                    return@Button
+                }
 
                 if (!valid) return@Button
 
@@ -282,7 +304,9 @@ fun JobForm(
                     title = title.text,
                     description = description.text,
                     tags = selectedTags.toList(),
-                    location = location.text,
+                    location = loc.third,
+                    latitude = loc.first,
+                    longitude = loc.second,
                     dateTime = combinedDateTime,
                     paymentAmount = paymentSlider.toInt().toString()
                 )

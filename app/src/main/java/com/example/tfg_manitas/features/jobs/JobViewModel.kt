@@ -32,6 +32,14 @@ class JobViewModel : ViewModel() {
     private val _userMap = MutableStateFlow<Map<String, User>>(emptyMap())
     val userMap: StateFlow<Map<String, User>> = _userMap
 
+    private val _selectedLocation = MutableStateFlow<Triple<Double, Double, String>?>(null)
+    val selectedLocation: StateFlow<Triple<Double, Double, String>?> = _selectedLocation
+
+
+    fun setSelectedLocation(lat: Double, lng: Double, address: String) {
+        _selectedLocation.value = Triple(lat, lng, address)
+    }
+
     init {
         listenToUserJobs()
         listenToAllJobs()
@@ -42,9 +50,11 @@ class JobViewModel : ViewModel() {
         title: String,
         description: String,
         tags: List<String>,
-        location: String,
         dateTime: String,
         paymentAmount: String,
+        location: String,
+        latitude: Double,
+        longitude: Double,
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
     ) {
@@ -57,8 +67,11 @@ class JobViewModel : ViewModel() {
             location = location,
             dateTime = dateTime,
             paymentAmount = paymentAmount,
-            userId = currentUser.uid
+            userId = currentUser.uid,
+            latitude = latitude,
+            longitude = longitude
         )
+
 
         viewModelScope.launch {
             db.collection("jobs")
@@ -189,12 +202,33 @@ class JobViewModel : ViewModel() {
     }
 
     fun loadAllUsers() {
-        db.collection("users").get()
-            .addOnSuccessListener { snapshot ->
-                val users = snapshot.mapNotNull { it.toObject(User::class.java) }
-                _userMap.value = users.associateBy { it.uid }
+        viewModelScope.launch {
+            try {
+                val usersSnapshot = db.collection("users").get().await()
+                val reviewsSnapshot = db.collection("reviews").get().await()
+
+                val reviewsByUser = reviewsSnapshot.documents.groupBy {
+                    it.getString("toUserId")
+                }
+
+                val enrichedUsers = usersSnapshot.documents.mapNotNull { doc ->
+                    val user = doc.toObject(User::class.java)
+                    val uid = user?.uid
+                    if (user != null && uid != null) {
+                        val userReviews = reviewsByUser[uid]?.mapNotNull { it.getDouble("rating") } ?: emptyList()
+                        val avgRating = if (userReviews.isNotEmpty()) userReviews.average() else 0.0
+                        user.copy(rating = avgRating)
+                    } else null
+                }
+
+                _userMap.value = enrichedUsers.associateBy { it.uid }
+            } catch (e: Exception) {
+                Log.e("JobViewModel", "Error al cargar usuarios con ratings", e)
             }
+        }
     }
+
+
 
     fun refreshJobs() {
         listenToAllJobs()

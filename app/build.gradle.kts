@@ -82,6 +82,13 @@ dependencies {
     implementation(libs.androidx.ui.text)
     implementation(libs.accompanist.flowlayout)
     implementation(libs.androidx.compose.material)
+    implementation(libs.play.services.location)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+    implementation(libs.places)
+    implementation(libs.material)
+
 
 
     testImplementation(libs.junit)

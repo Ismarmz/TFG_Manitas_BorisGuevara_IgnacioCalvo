@@ -1,5 +1,7 @@
 package com.example.tfg_manitas.features.jobs
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
@@ -27,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import com.example.tfg_manitas.ui.theme.VerdeExito
 import androidx.compose.ui.unit.sp
 import com.example.tfg_manitas.features.profile.User
-import com.google.accompanist.flowlayout.FlowRow
 import androidx.compose.material3.FilterChip
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextFieldDefaults
@@ -43,8 +44,27 @@ import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.core.content.ContextCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.android.gms.location.LocationServices
+import kotlin.math.*
 
-@OptIn(ExperimentalMaterialApi::class)
+
+
+fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val R = 6371 // Radio de la Tierra en km
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLon = Math.toRadians(lon2 - lon1)
+    val a = sin(dLat / 2).pow(2.0) +
+            cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
+            sin(dLon / 2).pow(2.0)
+    val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    return R * c
+}
+
+@OptIn(ExperimentalMaterialApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewModel = viewModel()) {
     val context = LocalContext.current
@@ -62,6 +82,33 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
 
     val tagOptions = listOf("Hogar", "Exterior", "Técnico", "Express", "Físico", "No presencial")
     val selectedTags = remember { mutableStateListOf<String>() }
+    var selectedProximity by remember { mutableStateOf("Todos") }
+    var selectedRating by remember { mutableStateOf("Todos") }
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    val locationPermissionState = rememberPermissionState(
+        android.Manifest.permission.ACCESS_FINE_LOCATION
+    )
+
+    var userLatitude by remember { mutableStateOf<Double?>(null) }
+    var userLongitude by remember { mutableStateOf<Double?>(null) }
+
+
+    LaunchedEffect(Unit) {
+        if (!locationPermissionState.status.isGranted) {
+            locationPermissionState.launchPermissionRequest()
+        } else {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    userLatitude = it.latitude
+                    userLongitude = it.longitude
+                } ?: run {
+                    Toast.makeText(context, "Ubicación no disponible", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     val filteredJobs = allJobs.filter { job ->
         val cleanedQuery = searchQuery.trim().lowercase()
@@ -78,13 +125,42 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
             it >= minValue
         } ?: false
 
+        val matchesProximity = when (selectedProximity) {
+            "Todos" -> true
+            "< 5 km" -> {
+                userLatitude != null && userLongitude != null &&
+                        haversine(userLatitude!!, userLongitude!!, job.latitude, job.longitude) <= 5
+            }
+            "< 10 km" -> {
+                userLatitude != null && userLongitude != null &&
+                        haversine(userLatitude!!, userLongitude!!, job.latitude, job.longitude) <= 10
+            }
+            "< 20 km" -> {
+                userLatitude != null && userLongitude != null &&
+                        haversine(userLatitude!!, userLongitude!!, job.latitude, job.longitude) <= 20
+            }
+            else -> true
+        }
+
+
+        val creatorRating = userMap[job.userId]?.rating ?: 0.0
+        println("User: ${job.userId}, Rating: $creatorRating")
+        val matchesRating = when (selectedRating) {
+            "Todos" -> true
+            "≥ 3⭐" -> creatorRating >= 3
+            "≥ 4⭐" -> creatorRating >= 4
+            else -> true
+        }
+
+
         val matchesTags = selectedTags.isEmpty() || selectedTags.any { tag ->
             job.tags.any { it.equals(tag, ignoreCase = true) }
         }
 
         val notAssigned = job.selectedWorkerId == null
 
-        notAssigned && matchesKeyword && matchesTags && matchesLocation && matchesPayment
+        notAssigned && matchesKeyword && matchesTags && matchesLocation &&
+                matchesPayment && matchesProximity && matchesRating
     }
 
     Column(
@@ -186,7 +262,50 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
                             )
                         }
 
+// Carrusel - PROXIMIDAD
+                        Text("Proximidad", style = MaterialTheme.typography.labelLarge)
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        val proximityOptions = listOf("Todos", "< 5 km", "< 10 km", "< 20 km")
+
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(proximityOptions) { option ->
+                                FilterChip(
+                                    selected = selectedProximity == option,
+                                    onClick = { selectedProximity = option },
+                                    label = { Text(option) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                )
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(12.dp))
+
+// Carrusel - PUNTUACIÓN
+                        Text("Puntuación mínima", style = MaterialTheme.typography.labelLarge)
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        val ratingOptions = listOf("Todos", "≥ 3⭐", "≥ 4⭐")
+
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(ratingOptions) { option ->
+                                FilterChip(
+                                    selected = selectedRating == option,
+                                    onClick = { selectedRating = option },
+                                    label = { Text(option) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
                     }
                 }
 
@@ -251,7 +370,10 @@ fun AvailableJobsScreen(navController: NavHostController, jobViewModel: JobViewM
                 locationFilter = ""
                 minPaymentFilter = ""
                 selectedTags.clear()
-            },
+                selectedProximity = "Todos"
+                selectedRating = "Todos"
+            }
+,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.secondary,

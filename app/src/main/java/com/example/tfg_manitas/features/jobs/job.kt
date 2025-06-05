@@ -16,7 +16,11 @@ data class Job(
     var isCompleted: Boolean = false,
     val applicants: List<String> = listOf(),
     val shortlistedWorkerIds: List<String> = listOf(),
-    val selectedWorkerId: String? = null
+    val selectedWorkerId: String? = null,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+
+
 )
 
 

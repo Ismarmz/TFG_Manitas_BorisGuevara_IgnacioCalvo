@@ -26,12 +26,28 @@ class UserRepository {
         return try {
             val doc = users.document(uid).get().await()
             val user = doc.toObject(User::class.java)
-            if (user != null) Result.success(user)
-            else Result.failure(Exception("Usuario no encontrado"))
+
+            return if (user != null) {
+                // Cargar reviews y calcular promedio
+                val reviewsSnapshot = FirebaseFirestore.getInstance()
+                    .collection("reviews")
+                    .whereEqualTo("reviewedUserId", uid)
+                    .get()
+                    .await()
+
+                val ratings = reviewsSnapshot.documents.mapNotNull { it.getDouble("rating") }
+                val averageRating = if (ratings.isNotEmpty()) ratings.average() else 0.0
+
+                val enrichedUser = user.copy(rating = averageRating)
+                Result.success(enrichedUser)
+            } else {
+                Result.failure(Exception("Usuario no encontrado"))
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
+
 
     suspend fun updateUser(user: User): Result<Unit> {
         return try {

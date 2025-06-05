@@ -19,6 +19,7 @@ import com.example.tfg_manitas.features.chat.ChatScreen
 import com.example.tfg_manitas.features.home.MainScreen
 import com.example.tfg_manitas.features.jobs.EditJobScreen
 import com.example.tfg_manitas.features.jobs.JobViewModel
+import com.example.tfg_manitas.features.jobs.MapPickerScreen
 import com.example.tfg_manitas.features.profile.CompleteProfileScreen
 import com.example.tfg_manitas.features.profile.PublicProfileScreen
 import com.example.tfg_manitas.features.reviews.ReviewScreen
@@ -104,5 +105,18 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
                 navController = navController
             )
         }
+
+        composable("map_picker") {
+            val jobViewModel: JobViewModel = viewModel()
+
+            MapPickerScreen(
+                navController = navController,
+                onLocationPicked = { lat, lng, address ->
+                    jobViewModel.setSelectedLocation(lat, lng, address)
+                }
+            )
+        }
+
+
     }
 }
