@@ -16,6 +16,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.compose.rememberNavController
 import com.example.tfg_manitas.navigation.AppNavigation
 import com.example.tfg_manitas.ui.theme.TFG_ManitasTheme
+import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
@@ -27,6 +28,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!Places.isInitialized()) {
+            Places.initialize(applicationContext, "AIzaSyD2Z-H6jzHtdn1pps8kyaac4SdmuByhZ6s")
+        }
 
         setContent {
             TFG_ManitasTheme {

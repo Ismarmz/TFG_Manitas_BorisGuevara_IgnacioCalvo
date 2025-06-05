@@ -106,17 +106,12 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
             )
         }
 
-        composable("map_picker") {
-            val jobViewModel: JobViewModel = viewModel()
-
-            MapPickerScreen(
-                navController = navController,
-                onLocationPicked = { lat, lng, address ->
-                    jobViewModel.setSelectedLocation(lat, lng, address)
-                }
-            )
+        composable("map_picker") { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry("post")
+            }
+            val jobViewModel: JobViewModel = viewModel(parentEntry)
+            MapPickerScreen(navController = navController, jobViewModel = jobViewModel)
         }
-
-
     }
 }

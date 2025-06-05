@@ -1,6 +1,7 @@
 package com.example.tfg_manitas.features.jobs
 
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tfg_manitas.features.profile.User
@@ -39,6 +40,10 @@ class JobViewModel : ViewModel() {
     fun setSelectedLocation(lat: Double, lng: Double, address: String) {
         _selectedLocation.value = Triple(lat, lng, address)
     }
+
+
+    val formState = mutableStateOf<JobFormState?>(null)
+
 
     init {
         listenToUserJobs()
@@ -235,3 +240,12 @@ class JobViewModel : ViewModel() {
         listenToUserJobs()
     }
 }
+
+data class JobFormState(
+    val title: String,
+    val description: String,
+    val tags: List<String>,
+    val dateTime: String,
+    val paymentAmount: Float
+)
+

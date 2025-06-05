@@ -5,7 +5,6 @@ import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.flowlayout.FlowRow
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.datetime.date.datepicker
@@ -26,6 +24,9 @@ import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import android.util.Log
 
 @Composable
 fun JobForm(
@@ -37,20 +38,32 @@ fun JobForm(
     snackbarHostState: SnackbarHostState,
     latitude: Double? = null,
     longitude: Double? = null
-){
+) {
+    val jobViewModel: JobViewModel = viewModel()
+    val savedState = jobViewModel.formState.value
+
     val allTags = listOf("Hogar", "Exterior", "Técnico", "Express", "Físico", "No presencial")
     val selectedTags = remember { mutableStateListOf<String>() }
-    if (initialJob != null && selectedTags.isEmpty()) selectedTags.addAll(initialJob.tags)
+    if (savedState != null && selectedTags.isEmpty()) {
+        selectedTags.addAll(savedState.tags)
+    } else if (initialJob != null && selectedTags.isEmpty()) {
+        selectedTags.addAll(initialJob.tags)
+    }
 
-    var title by remember { mutableStateOf(TextFieldValue(initialJob?.title ?: "")) }
-    var description by remember { mutableStateOf(TextFieldValue(initialJob?.description ?: "")) }
-    var location by remember { mutableStateOf(TextFieldValue(initialJob?.location ?: "")) }
-    var paymentAmount by remember { mutableStateOf(TextFieldValue(initialJob?.paymentAmount ?: "")) }
 
-    var paymentSlider by remember { mutableFloatStateOf(initialJob?.paymentAmount?.toFloatOrNull() ?: 50f) }
+    var title by remember {
+        mutableStateOf(TextFieldValue(savedState?.title ?: initialJob?.title ?: ""))
+    }
+    var description by remember {
+        mutableStateOf(TextFieldValue(savedState?.description ?: initialJob?.description ?: ""))
+    }
+    var paymentSlider by remember {
+        mutableFloatStateOf(savedState?.paymentAmount ?: initialJob?.paymentAmount?.toFloatOrNull() ?: 50f)
+    }
+
+
     val dateDialogState = rememberMaterialDialogState()
     val timeDialogState = rememberMaterialDialogState()
-
     var pickedDate by remember { mutableStateOf<LocalDate?>(null) }
     var pickedTime by remember { mutableStateOf<LocalTime?>(null) }
 
@@ -75,32 +88,24 @@ fun JobForm(
     var paymentError by remember { mutableStateOf<String?>(null) }
     var tagsError by remember { mutableStateOf<String?>(null) }
     var dateTimeError by remember { mutableStateOf<String?>(null) }
-    val jobViewModel: JobViewModel = viewModel()
     val selectedLocation by jobViewModel.selectedLocation.collectAsState()
 
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(16.dp)
+    ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = { /* navController.popBackStack() */ }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = Color(0xFF2F4C5A)
-                )
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = Color(0xFF2F4C5A))
             }
-            Text(
-                text = "Formulario de trabajo",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color(0xFF2F4C5A),
-                modifier = Modifier.weight(1f),
-                maxLines = 1
-            )
+            Text("Formulario de trabajo", style = MaterialTheme.typography.titleLarge, color = Color(0xFF2F4C5A), modifier = Modifier.weight(1f), maxLines = 1)
             Spacer(modifier = Modifier.width(48.dp))
         }
 
@@ -155,30 +160,36 @@ fun JobForm(
         Text("Ubicación y Pago", style = MaterialTheme.typography.labelLarge)
 
         OutlinedTextField(
-            value = selectedLocation?.third ?: "Ubicación no seleccionada",
+            value = selectedLocation?.third ?: "",
             onValueChange = {},
             enabled = false,
             label = { Text("Ubicación seleccionada") },
+            placeholder = { Text("Selecciona una ubicación en el mapa") },
+            isError = locationError != null,
             modifier = Modifier.fillMaxWidth()
         )
+        locationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
-// Botón para abrir el mapa
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = { navController.navigate("map_picker") },
+            onClick = {
+                jobViewModel.formState.value = JobFormState(
+                    title = title.text,
+                    description = description.text,
+                    tags = selectedTags.toList(),
+                    dateTime = combinedDateTime,
+                    paymentAmount = paymentSlider
+                )
+                navController.navigate("map_picker")
+            },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2F4C5A),
-                contentColor = Color.White
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F4C5A), contentColor = Color.White)
         ) {
             Text("Seleccionar ubicación en mapa")
         }
-
         Spacer(Modifier.height(8.dp))
         Text("Remuneración", style = MaterialTheme.typography.labelLarge)
         Spacer(modifier = Modifier.height(8.dp))
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -187,86 +198,53 @@ fun JobForm(
             Text("250 USD", fontSize = 12.sp, color = Color.Gray)
         }
 
-            Slider(
-                value = paymentSlider,
-                onValueChange = {
-                    paymentSlider = it
-                    paymentError = null
-                },
-                valueRange = 0f..250f,
-                modifier = Modifier.fillMaxWidth(),
-                colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFFF4A950),
-                    activeTrackColor = Color(0xFF2F4C5A),
-                    inactiveTrackColor = Color.LightGray
-                )
+        Slider(
+            value = paymentSlider,
+            onValueChange = {
+                paymentSlider = it
+                paymentError = null
+            },
+            valueRange = 0f..250f,
+            modifier = Modifier.fillMaxWidth(),
+            colors = SliderDefaults.colors(
+                thumbColor = Color(0xFFF4A950),
+                activeTrackColor = Color(0xFF2F4C5A),
+                inactiveTrackColor = Color.LightGray
             )
-
-            Text(
-                text = "${paymentSlider.toInt()} USD seleccionados",
-                fontSize = 14.sp,
-                color = Color(0xFF2F4C5A),
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
-
+        )
+        Text("${paymentSlider.toInt()} USD seleccionados", fontSize = 14.sp, color = Color(0xFF2F4C5A), modifier = Modifier.align(Alignment.CenterHorizontally))
         paymentError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         Spacer(modifier = Modifier.height(16.dp))
         Text("Fecha y Hora", style = MaterialTheme.typography.labelLarge)
-
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { dateDialogState.show() },
-                modifier = Modifier.padding(horizontal = 40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.DateRange,
-                    contentDescription = "Fecha",
-                    tint = Color(0xFF2F4C5A),
-                    modifier = Modifier.size(32.dp)
-                )
+            IconButton(onClick = { dateDialogState.show() }, modifier = Modifier.padding(horizontal = 40.dp)) {
+                Icon(Icons.Default.DateRange, contentDescription = "Fecha", tint = Color(0xFF2F4C5A), modifier = Modifier.size(32.dp))
             }
-
-            IconButton(
-                onClick = { timeDialogState.show() },
-                modifier = Modifier.padding(horizontal = 40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.AccessTime,
-                    contentDescription = "Hora",
-                    tint = Color(0xFF2F4C5A),
-                    modifier = Modifier.size(32.dp)
-                )
+            IconButton(onClick = { timeDialogState.show() }, modifier = Modifier.padding(horizontal = 40.dp)) {
+                Icon(Icons.Default.AccessTime, contentDescription = "Hora", tint = Color(0xFF2F4C5A), modifier = Modifier.size(32.dp))
             }
         }
-
-        dateTimeError?.let {
-            Text(it, color = MaterialTheme.colorScheme.error)
-        }
+        dateTimeError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
 
         MaterialDialog(dateDialogState, buttons = {
             positiveButton("Aceptar")
             negativeButton("Cancelar")
-        }) {
-            datepicker { pickedDate = it }
-        }
+        }) { datepicker { pickedDate = it } }
 
         MaterialDialog(timeDialogState, buttons = {
             positiveButton("Aceptar")
             negativeButton("Cancelar")
-        }) {
-            timepicker(is24HourClock = true) { pickedTime = it }
-        }
+        }) { timepicker(is24HourClock = true) { pickedTime = it } }
 
         Spacer(Modifier.height(24.dp))
         Button(
             onClick = {
+                Log.d("JobForm", "Botón de publicar presionado")
                 var valid = true
                 if (title.text.length < 5) {
                     titleError = "El título debe tener al menos 5 caracteres"
@@ -277,9 +255,10 @@ fun JobForm(
                     valid = false
                 }
                 val loc = selectedLocation
+                        Log.d("JobForm", "selectedLocation = $loc")
                 if (loc == null) {
                     locationError = "Selecciona una ubicación válida"
-                    return@Button
+                    valid = false
                 }
                 if (paymentSlider <= 0f) {
                     paymentError = "La remuneración debe ser mayor a 0"
@@ -293,18 +272,13 @@ fun JobForm(
                     dateTimeError = "Selecciona fecha y hora"
                     valid = false
                 }
-                if (loc == null) {
-                    locationError = "Selecciona una ubicación válida"
-                    return@Button
-                }
-
                 if (!valid) return@Button
 
                 val job = (initialJob ?: Job()).copy(
                     title = title.text,
                     description = description.text,
                     tags = selectedTags.toList(),
-                    location = loc.third,
+                    location = loc!!.third,
                     latitude = loc.first,
                     longitude = loc.second,
                     dateTime = combinedDateTime,
@@ -314,10 +288,7 @@ fun JobForm(
             },
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF4A950),
-                contentColor = Color(0xFF2F4C5A)
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF4A950), contentColor = Color(0xFF2F4C5A))
         ) {
             if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp))
             else Text(submitLabel, fontSize = 14.sp)

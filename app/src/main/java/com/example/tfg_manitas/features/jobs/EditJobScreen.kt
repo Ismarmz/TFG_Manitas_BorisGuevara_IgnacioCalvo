@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 
 @Composable
 fun EditJobScreen(
@@ -21,27 +22,13 @@ fun EditJobScreen(
     val isLoading by jobViewModel.isLoading.collectAsState()
     val selectedLocation by jobViewModel.selectedLocation.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var snackbarMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
-    // Ubicación final que usaremos: si el usuario seleccionó una nueva, la usamos
-    val finalLat = selectedLocation?.first ?: job.latitude
-    val finalLng = selectedLocation?.second ?: job.longitude
-    val finalAddress = selectedLocation?.third ?: job.location
-
-    // Creamos una copia actualizada del Job
     val jobToEdit = job.copy(
-        latitude = finalLat,
-        longitude = finalLng,
-        location = finalAddress
+        latitude = selectedLocation?.first ?: job.latitude,
+        longitude = selectedLocation?.second ?: job.longitude,
+        location = selectedLocation?.third ?: job.location
     )
-
-    // Mostrar Snackbar si hay mensaje
-    LaunchedEffect(snackbarMessage) {
-        snackbarMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            snackbarMessage = null
-        }
-    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -62,11 +49,15 @@ fun EditJobScreen(
                         jobId = job.id,
                         updatedJob = updatedJob,
                         onSuccess = {
-                            snackbarMessage = "Trabajo actualizado"
-                            navController.popBackStack()
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Trabajo actualizado")
+                                navController.popBackStack()
+                            }
                         },
                         onFailure = { error ->
-                            snackbarMessage = "Error: $error"
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar("Error: $error")
+                            }
                         }
                     )
                 }
