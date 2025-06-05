@@ -10,7 +10,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,7 +139,44 @@ fun PublishTabScreen(navController: NavHostController) {
                                         style = MaterialTheme.typography.body1
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    Text("📍 ${job.location}  |  🕒 ${job.dateTime}", style = MaterialTheme.typography.caption)
+                                    val iconColor = Color(0xFF2F4C5A)
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Place,
+                                            contentDescription = "Ubicación",
+                                            tint = iconColor,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(text = job.location, style = MaterialTheme.typography.body2)
+                                    }
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Schedule,
+                                            contentDescription = "Fecha y hora",
+                                            tint = iconColor,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(text = job.dateTime, style = MaterialTheme.typography.body2)
+                                    }
+
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.AttachMoney,
+                                            contentDescription = "Pago",
+                                            tint = iconColor,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(text = job.paymentAmount, style = MaterialTheme.typography.body2)
+                                    }
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -293,11 +334,22 @@ fun PublishTabScreen(navController: NavHostController) {
                                                 .background(Color(0xFF10B981).copy(alpha = 0.1f))
                                                 .padding(vertical = 8.dp, horizontal = 12.dp)
                                         ) {
-                                            Text(
-                                                text = "✅ Trabajo completado",
-                                                color = Color(0xFF10B981),
-                                                fontWeight = FontWeight.Medium
-                                            )
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.CheckCircle,
+                                                    contentDescription = "Trabajo completado",
+                                                    tint = Color(0xFF10B981),
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(6.dp))
+                                                Text(
+                                                    text = "Trabajo completado",
+                                                    color = Color(0xFF10B981),
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                            }
                                         }
                                     }
                                 }

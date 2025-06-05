@@ -40,10 +40,15 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -463,7 +468,46 @@ fun JobCard(
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("📍 ${job.location}  |  🕒 ${job.dateTime}  |  💰 ${job.paymentAmount}", style = MaterialTheme.typography.labelMedium)
+                val iconColor = Color(0xFF2F4C5A)
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Place,
+                        contentDescription = "Ubicación",
+                        tint = iconColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = job.location, style = MaterialTheme.typography.labelMedium)
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Schedule,
+                        contentDescription = "Fecha y hora",
+                        tint = iconColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = job.dateTime, style = MaterialTheme.typography.labelMedium)
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.AttachMoney,
+                        contentDescription = "Pago",
+                        tint = iconColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = job.paymentAmount, style = MaterialTheme.typography.labelMedium)
+                }
+
+
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(job.description, maxLines = 2, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(6.dp))
@@ -508,7 +552,21 @@ fun JobCard(
                             .background(VerdeExito.copy(alpha = 0.1f))
                             .padding(vertical = 8.dp, horizontal = 12.dp)
                     ) {
-                        Text("✅ Ya te has postulado", color = VerdeExito, fontWeight = FontWeight.Medium, fontSize = 14.sp)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Postulación enviada",
+                                tint = VerdeExito,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Ya te has postulado",
+                                color = VerdeExito,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp
+                            )
+                        }
                     }
                 }
             }

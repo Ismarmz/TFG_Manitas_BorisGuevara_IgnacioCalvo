@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,9 @@ import com.example.tfg_manitas.data.repository.UserRepository
 import com.example.tfg_manitas.features.reviews.Review
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.BarChart
 
 @Composable
 fun ProfileScreen(onLogout: () -> Unit) {
@@ -186,11 +190,19 @@ fun ProfileScreen(onLogout: () -> Unit) {
                                 coroutineScope.launch {
                                     val result = UserRepository().updateUser(updatedUser)
                                     if (result.isSuccess) {
-                                        Toast.makeText(context, "Perfil actualizado", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Perfil actualizado",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         user = updatedUser
                                         isEditing = false
                                     } else {
-                                        Toast.makeText(context, "Error al actualizar", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Error al actualizar",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 }
                             },
@@ -233,9 +245,8 @@ fun ProfileScreen(onLogout: () -> Unit) {
                     }
 
                     Column(Modifier.padding(horizontal = 16.dp)) {
-
-
                         Spacer(modifier = Modifier.height(8.dp))
+                        val iconColor = Color(0xFF2F4C5A)
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -253,11 +264,16 @@ fun ProfileScreen(onLogout: () -> Unit) {
                                     backgroundColor = Color(0xFFFFF8F0),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Box(
+                                    Column(
                                         modifier = Modifier.padding(12.dp),
-                                        contentAlignment = Alignment.Center
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Text("⭐ ${"%.1f".format(promedio)}")
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Promedio",
+                                            tint = iconColor
+                                        )
+                                        Text(" ${"%.1f".format(promedio)}")
                                     }
                                 }
                             }
@@ -281,11 +297,16 @@ fun ProfileScreen(onLogout: () -> Unit) {
                                     backgroundColor = Color(0xFFFFF8F0),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Box(
+                                    Column(
                                         modifier = Modifier.padding(12.dp),
-                                        contentAlignment = Alignment.Center
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Text("🗂 Reseñas: $totalReseñas")
+                                        Icon(
+                                            imageVector = Icons.Default.Folder,
+                                            contentDescription = "Total reseñas",
+                                            tint = iconColor
+                                        )
+                                        Text("Reseñas: $totalReseñas")
                                     }
                                 }
                             }
@@ -297,7 +318,7 @@ fun ProfileScreen(onLogout: () -> Unit) {
                                     .width(1.dp)
                             )
 
-                            // Caja 3: Reputación con palabra coloreada
+                            // Caja 3: Reputación
                             Box(
                                 modifier = Modifier
                                     .weight(1f)
@@ -309,19 +330,22 @@ fun ProfileScreen(onLogout: () -> Unit) {
                                     backgroundColor = Color(0xFFFFF8F0),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Box(
+                                    Column(
                                         modifier = Modifier.padding(12.dp),
-                                        contentAlignment = Alignment.Center
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text(text = "📊 Reputación:", color = Color.Black, textAlign = TextAlign.Center)
-                                            Text(
-                                                text = etiqueta.replace("Reputación ", "").replace("reputación ", ""),
-                                                color = etiquetaColor,
-                                                style = MaterialTheme.typography.body2,
-                                                textAlign = TextAlign.Center
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.BarChart,
+                                            contentDescription = "Reputación",
+                                            tint = iconColor
+                                        )
+                                        Text(
+                                            text = etiqueta.replace("Reputación ", "")
+                                                .replace("reputación ", ""),
+                                            color = etiquetaColor,
+                                            style = MaterialTheme.typography.body2,
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
                                 }
                             }
