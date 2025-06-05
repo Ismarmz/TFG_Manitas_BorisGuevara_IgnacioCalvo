@@ -25,6 +25,10 @@ import com.example.tfg_manitas.data.repository.ReviewRepository
 import com.example.tfg_manitas.ui.theme.VerdeExito
 import com.google.firebase.auth.FirebaseAuth
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Schedule
+
+
 @Composable
 fun MyApplicationsScreen(
     jobViewModel: JobViewModel = viewModel(),
@@ -77,7 +81,7 @@ fun MyApplicationsScreen(
                         job.selectedWorkerId == currentUserId && job.isCompleted -> "✅ Trabajo completado"
                         job.selectedWorkerId == currentUserId -> "✅ Fuiste seleccionado"
                         !job.selectedWorkerId.isNullOrBlank() -> "❌ No fuiste seleccionado"
-                        else -> "⏳ En espera de decisión"
+                        else -> " En espera de decisión"
                     }
 
                     Card(
@@ -143,28 +147,51 @@ fun MyApplicationsScreen(
 
                                 Spacer(modifier = Modifier.height(8.dp))
 
-                                if (job.selectedWorkerId == currentUserId) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clip(RoundedCornerShape(6.dp))
-                                            .border(1.dp, VerdeExito, RoundedCornerShape(6.dp))
-                                            .background(VerdeExito.copy(alpha = 0.1f))
-                                            .padding(vertical = 8.dp, horizontal = 12.dp)
-                                    ) {
+                                when {
+                                    job.selectedWorkerId == currentUserId -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .border(1.dp, VerdeExito, RoundedCornerShape(6.dp))
+                                                .background(VerdeExito.copy(alpha = 0.1f))
+                                                .padding(vertical = 8.dp, horizontal = 12.dp)
+                                        ) {
+                                            Text(
+                                                text = estadoTexto,
+                                                color = VerdeExito,
+                                                style = MaterialTheme.typography.labelLarge,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
+
+                                    job.selectedWorkerId.isNullOrBlank() -> {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Schedule,
+                                                contentDescription = null,
+                                                tint = Color(0xFF2F4C5A),
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(Modifier.width(6.dp))
+                                            Text(
+                                                text = estadoTexto,
+                                                color = Color(0xFFF4A950),
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
+                                        }
+                                    }
+
+                                    else -> {
                                         Text(
                                             text = estadoTexto,
-                                            color = VerdeExito,
-                                            style = MaterialTheme.typography.labelLarge,
-                                            fontWeight = FontWeight.Medium
+                                            color = estadoColor,
+                                            style = MaterialTheme.typography.labelLarge
                                         )
                                     }
-                                } else {
-                                    Text(
-                                        text = estadoTexto,
-                                        color = estadoColor,
-                                        style = MaterialTheme.typography.labelLarge
-                                    )
                                 }
 
                                 Spacer(modifier = Modifier.height(12.dp))

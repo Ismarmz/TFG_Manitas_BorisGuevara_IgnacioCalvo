@@ -104,7 +104,6 @@ fun ProfileScreen(onLogout: () -> Unit) {
                 }
             }
 
-            // Contenido principal
             Column(
                 modifier = Modifier
                     .fillMaxSize()
