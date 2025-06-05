@@ -24,11 +24,15 @@ fun EditJobScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    val jobToEdit = job.copy(
-        latitude = selectedLocation?.first ?: job.latitude,
-        longitude = selectedLocation?.second ?: job.longitude,
-        location = selectedLocation?.third ?: job.location
-    )
+    LaunchedEffect(Unit) {
+        if (jobViewModel.selectedLocation.value == null) {
+            jobViewModel.setSelectedLocation(
+                job.latitude,
+                job.longitude,
+                job.location
+            )
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -40,7 +44,7 @@ fun EditJobScreen(
         ) {
             JobForm(
                 navController = navController,
-                initialJob = jobToEdit,
+                initialJob = job,
                 submitLabel = "Guardar Cambios",
                 isLoading = isLoading,
                 snackbarHostState = snackbarHostState,

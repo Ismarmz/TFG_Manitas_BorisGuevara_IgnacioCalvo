@@ -106,12 +106,18 @@ fun AppNavigation(navController: NavHostController, startDestination: String) {
             )
         }
 
-        composable("map_picker") { backStackEntry ->
-            val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry("post")
-            }
-            val jobViewModel: JobViewModel = viewModel(parentEntry)
-            MapPickerScreen(navController = navController, jobViewModel = jobViewModel)
+        composable(
+            route = "map_picker?returnTo={returnTo}",
+            arguments = listOf(
+                navArgument("returnTo") {
+                    defaultValue = "post"
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val returnTo = backStackEntry.arguments?.getString("returnTo") ?: "post"
+            val jobViewModel: JobViewModel = viewModel()
+            MapPickerScreen(navController = navController, jobViewModel = jobViewModel, returnTo = returnTo)
         }
     }
 }

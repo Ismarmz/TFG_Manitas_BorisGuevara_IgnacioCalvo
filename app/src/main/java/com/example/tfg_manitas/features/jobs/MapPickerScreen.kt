@@ -23,7 +23,11 @@ import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRe
 import java.util.*
 
 @Composable
-fun MapPickerScreen(navController: NavController, jobViewModel: JobViewModel) {
+fun MapPickerScreen(
+    navController: NavController,
+    jobViewModel: JobViewModel,
+    returnTo: String
+) {
     val context = LocalContext.current
     val madrid = LatLng(40.4168, -3.7038)
 
@@ -129,6 +133,7 @@ fun MapPickerScreen(navController: NavController, jobViewModel: JobViewModel) {
                     val location = jobViewModel.selectedLocation.value
                     Log.d("MapPicker", "Ubicación guardada antes de confirmar: $location")
                     navController.popBackStack()
+                    navController.navigate(returnTo)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

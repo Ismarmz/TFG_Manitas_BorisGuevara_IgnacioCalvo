@@ -67,7 +67,7 @@ fun MyApplicationsScreen(
                         else -> "⏳ En espera de decisión"
                     }
 
-                    val categoriaColor = colorPorCategoria(job.tags.firstOrNull() ?: "")
+                    val categoriaColor = Color(0xFF2F4C5A)
 
                     Card(
                         modifier = Modifier

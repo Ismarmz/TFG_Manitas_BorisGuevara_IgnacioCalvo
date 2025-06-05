@@ -27,6 +27,9 @@ import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import android.util.Log
+import androidx.compose.runtime.saveable.rememberSaveable
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 
 @Composable
 fun JobForm(
@@ -42,6 +45,18 @@ fun JobForm(
     val jobViewModel: JobViewModel = viewModel()
     val savedState = jobViewModel.formState.value
 
+    val locationWasInitialized = rememberSaveable { mutableStateOf(false) }
+    val selectedLocation by jobViewModel.selectedLocation.collectAsState()
+
+    if (initialJob != null && jobViewModel.formState.value == null) {
+        jobViewModel.setSelectedLocation(
+            initialJob.latitude,
+            initialJob.longitude,
+            initialJob.location
+        )
+    }
+
+
     val allTags = listOf("Hogar", "Exterior", "Técnico", "Express", "Físico", "No presencial")
     val selectedTags = remember { mutableStateListOf<String>() }
     if (savedState != null && selectedTags.isEmpty()) {
@@ -49,7 +64,6 @@ fun JobForm(
     } else if (initialJob != null && selectedTags.isEmpty()) {
         selectedTags.addAll(initialJob.tags)
     }
-
 
     var title by remember {
         mutableStateOf(TextFieldValue(savedState?.title ?: initialJob?.title ?: ""))
@@ -60,7 +74,6 @@ fun JobForm(
     var paymentSlider by remember {
         mutableFloatStateOf(savedState?.paymentAmount ?: initialJob?.paymentAmount?.toFloatOrNull() ?: 50f)
     }
-
 
     val dateDialogState = rememberMaterialDialogState()
     val timeDialogState = rememberMaterialDialogState()
@@ -88,7 +101,6 @@ fun JobForm(
     var paymentError by remember { mutableStateOf<String?>(null) }
     var tagsError by remember { mutableStateOf<String?>(null) }
     var dateTimeError by remember { mutableStateOf<String?>(null) }
-    val selectedLocation by jobViewModel.selectedLocation.collectAsState()
 
     val scrollState = rememberScrollState()
     Column(
@@ -159,6 +171,9 @@ fun JobForm(
         Spacer(Modifier.height(16.dp))
         Text("Ubicación y Pago", style = MaterialTheme.typography.labelLarge)
 
+
+
+
         OutlinedTextField(
             value = selectedLocation?.third ?: "",
             onValueChange = {},
@@ -169,8 +184,11 @@ fun JobForm(
             modifier = Modifier.fillMaxWidth()
         )
         locationError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        Log.d("JobForm", "Ubicación actual visible: ${selectedLocation?.third}")
+
 
         Spacer(Modifier.height(8.dp))
+        val returnTo = if (initialJob == null) "post" else "editJob/${initialJob.id}"
         Button(
             onClick = {
                 jobViewModel.formState.value = JobFormState(
@@ -180,10 +198,8 @@ fun JobForm(
                     dateTime = combinedDateTime,
                     paymentAmount = paymentSlider
                 )
-                navController.navigate("map_picker")
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2F4C5A), contentColor = Color.White)
+                navController.navigate("map_picker?returnTo=$returnTo")
+            }
         ) {
             Text("Seleccionar ubicación en mapa")
         }
